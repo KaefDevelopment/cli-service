@@ -16,7 +16,9 @@ const (
     	target varchar(255),
     	branch varchat(255),
     	timeZone varchar(255),
-    	params text
+    	params text,
+    	authKey varchar(255) not null,
+    	send bool
 );`
 )
 

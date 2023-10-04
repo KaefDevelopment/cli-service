@@ -3,8 +3,13 @@ package service
 import (
 	"cli-service/internal/model"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+)
+
+var (
+	errAuthKey = errors.New("failed with auth key from request events")
 )
 
 func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
@@ -15,6 +20,14 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 		return model.Events{}, err
 	}
 
-	fmt.Println("len events:", len(requestModel.Events))
+	for i := range requestModel.Events {
+		requestModel.Events[i].AuthKey = s.authKey
+
+		if s.authKey == "" {
+			log.Println("fail with auth key, couldn't be empty")
+			return model.Events{}, fmt.Errorf("%v", errAuthKey)
+		}
+	}
+
 	return requestModel, nil
 }

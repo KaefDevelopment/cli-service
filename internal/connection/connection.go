@@ -12,7 +12,7 @@ import (
 
 func OpenDB() (*gorm.DB, error) {
 
-	db, err := gorm.Open(sqlite.Open("cli.db"))
+	db, err := gorm.Open(sqlite.Open("./cli.db"))
 	if err != nil {
 		log.Println("open db failed:", err)
 		return nil, err
