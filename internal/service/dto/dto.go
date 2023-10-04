@@ -1,4 +1,4 @@
-package model
+package dto
 
 type Event struct {
 	Id             string `json:"id" gorm:"column:id"`
@@ -11,8 +11,6 @@ type Event struct {
 	Branch         string `json:"branch,omitempty" gorm:"column:branch"`
 	Timezone       string `json:"timezone,omitempty" gorm:"column:timezone"`
 	Params         string `json:"params,omitempty" gorm:"column:params"`
-	AuthKey        string `json:"authKey" gorm:"column:authKey"`
-	Send           bool   `json:"send" gorm:"column:send"`
 }
 
 type Events struct {
@@ -20,5 +18,5 @@ type Events struct {
 }
 
 type Response struct {
-	Events []Events `json:"events"`
+	Events []Event `json:"events"`
 }
