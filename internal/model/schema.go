@@ -14,7 +14,7 @@ const (
     	projectBaseDir varchar(255),
     	language varchar(255),
     	target varchar(255),
-    	branch varchat(255),
+    	branch varchar(255),
     	timeZone varchar(255),
     	params text,
     	authKey varchar(255) not null,

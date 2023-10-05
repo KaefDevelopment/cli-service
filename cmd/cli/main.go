@@ -6,7 +6,6 @@ import (
 	cliservice "cli-service/internal/service"
 	"cli-service/internal/service/repository"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -48,12 +47,22 @@ func main() {
 
 	flag.Parse()
 
+	now := time.Now()
+
+	var err error
+	defer func() {
+		if err != nil {
+			log.Println("error:", err)
+		}
+
+		log.Println("ending time:", time.Since(now))
+		log.Println("ending cli")
+	}()
+
 	if strings.TrimSpace(*inputData) == "" {
 		flag.Usage()
 		return
 	}
-
-	now := time.Now()
 
 	db, err := connection.OpenDB()
 	if err != nil {
@@ -67,16 +76,16 @@ func main() {
 	repo := repository.NewCLIRepository(db)
 	service := cliservice.NewCLIService(repo, *httpAddr, *authKey)
 
-	dataFromRead, err := service.ReadRequestData(*inputData)
+	requestData, err := service.ReadRequestData(*inputData)
 	if err != nil {
 		return
 	}
 
-	if err := service.Aggregate(dataFromRead); err != nil {
+	if err := service.Aggregate(requestData); err != nil {
 		return
 	}
 
-	if err = service.CreateEvents(dataFromRead); err != nil {
+	if err = service.CreateEvents(requestData); err != nil {
 		return
 	}
 
@@ -100,8 +109,4 @@ func main() {
 	if err := service.Delete(); err != nil {
 		return
 	}
-
-	fmt.Println("ending time:", time.Since(now))
-
-	log.Println("ending cli")
 }

@@ -35,27 +35,20 @@ func (s *CLIService) Send(events model.Events) error {
 		return err
 	}
 
-	for _, event := range events.Events {
-		req, err := http.NewRequest("POST", s.httpAddr, bytes.NewBuffer(bytesEventsSend))
-		if err != nil {
-			log.Println("fail to send events:", err)
-			return err
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", event.AuthKey)
-
-		//fmt.Println("header:", req.Header.Get("Authorization"))
-
-		client := http.Client{}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Println("fail with do sends:", err)
-		}
-
-		return resp.Body.Close()
+	req, err := http.NewRequest("POST", s.httpAddr, bytes.NewBuffer(bytesEventsSend))
+	if err != nil {
+		log.Println("fail to send events:", err)
+		return err
 	}
 
-	return nil
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", events.Events[0].AuthKey)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println("fail with do sends:", err)
+		return err
+	}
+
+	return resp.Body.Close()
 }

@@ -26,9 +26,7 @@ func GetBranchByProjectBaseDir(projectBaseDir string) string {
 }
 
 func GetUUID() string {
-	id := uuid.New()
-
-	return id.String()
+	return uuid.New().String()
 }
 
 func (s *CLIService) Aggregate(events model.Events) error {
