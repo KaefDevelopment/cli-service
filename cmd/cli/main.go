@@ -93,9 +93,9 @@ func main() {
 		}
 	}
 
-	//if err := service.Delete(); err != nil {
-	//	return
-	//}
+	if err := service.Delete(); err != nil {
+		return
+	}
 
 	log.Println("ending cli")
 }
