@@ -27,4 +27,4 @@ Http address for sending events (default "https://kaif.io/api/plugin/v1/events")
 
 ### Example:
 
-[your binary file] -d '{"events":[{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":"some text2"},{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":"some text2"}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caea"
+[your binary file] -d '{"events":[{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"17"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caea"
