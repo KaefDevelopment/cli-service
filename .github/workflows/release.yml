@@ -1,0 +1,32 @@
+# This workflow will build release artifacts for different platforms and create a github release
+
+name: Release
+
+on:
+  push:
+    tags: [ "*" ]
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
+
+      - name: Build
+        run: make build-all
+
+      - name: Archive binaries
+        run: make zip-artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: ${{ contains(github.ref, '-rc') }}
+          files: ./bin/*.zip
