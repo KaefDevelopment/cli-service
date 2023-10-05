@@ -6,9 +6,11 @@ import (
 	cliservice "cli-service/internal/service"
 	"cli-service/internal/service/repository"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -50,6 +52,8 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	now := time.Now()
 
 	db, err := connection.OpenDB()
 	if err != nil {
@@ -96,6 +100,8 @@ func main() {
 	if err := service.Delete(); err != nil {
 		return
 	}
+
+	fmt.Println("ending time:", time.Since(now))
 
 	log.Println("ending cli")
 }

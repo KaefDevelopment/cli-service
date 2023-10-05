@@ -69,6 +69,7 @@ func (repo *CLIRepository) GetAuthKeys() ([]string, error) {
 
 	for rows.Next() {
 		var authKey model.Event
+
 		if err := rows.Scan(&authKey.AuthKey); err != nil {
 			log.Println("fail rows scan gorm:", err)
 			return nil, err
@@ -90,5 +91,6 @@ func (repo *CLIRepository) Drop() error {
 	}
 
 	log.Println("deleting successful")
+
 	return nil
 }
