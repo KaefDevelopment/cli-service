@@ -18,7 +18,7 @@ $(PLATFORMS): OS=$(word 1,$(split))
 $(PLATFORMS): ARCH=$(word 2,$(split))
 $(PLATFORMS): ARTIFACT_NAME=$(PROJECT_NAME)-$(OS)-$(ARCH)$(EXT)
 $(PLATFORMS):
-	env GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=1 && go build -o $(BUILD_DIR)/$(ARTIFACT_NAME) cmd/cli/main.go
+	env GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=1 go build -o $(BUILD_DIR)/$(ARTIFACT_NAME) cmd/cli/main.go
 
 .PHONY: zip-artifacts
 zip-artifacts: $(foreach f,$(wildcard $(BUILD_DIR)/*),$(f).zip)
