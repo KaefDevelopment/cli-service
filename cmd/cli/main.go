@@ -33,7 +33,13 @@ var (
 )
 
 func init() {
-	fileInfo, err := os.OpenFile("cli-logger.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fileInfo, err := os.OpenFile(homeDir+string(os.PathSeparator)+"cli-logger.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Println(err)
 		return

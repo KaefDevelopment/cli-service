@@ -21,10 +21,10 @@ func (s *CLIService) GetKeys() ([]string, error) {
 	return keys, nil
 }
 
-func (s *CLIService) GetEvents(keys []string) (model.Response, error) {
+func (s *CLIService) GetEvents(keys []string) (model.EventsByAuthKey, error) {
 	events, err := s.repo.Get(keys)
 	if err != nil {
-		return model.Response{}, err
+		return model.EventsByAuthKey{}, err
 	}
 
 	return events, nil

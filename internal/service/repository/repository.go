@@ -34,8 +34,8 @@ func (repo *CLIRepository) Update() error {
 	return nil
 }
 
-func (repo *CLIRepository) Get(authKey []string) (model.Response, error) {
-	var res model.Response
+func (repo *CLIRepository) Get(authKey []string) (model.EventsByAuthKey, error) {
+	var res model.EventsByAuthKey
 
 	for _, key := range authKey {
 		var events model.Events
@@ -43,7 +43,7 @@ func (repo *CLIRepository) Get(authKey []string) (model.Response, error) {
 		result := repo.db.Where("send = ?", 1).Where("authKey = ?", key).Find(&events.Events)
 		if result.Error != nil {
 			log.Println("fail with find events gorm:", result.Error)
-			return model.Response{}, result.Error
+			return model.EventsByAuthKey{}, result.Error
 		}
 
 		res.Events = append(res.Events, events)

@@ -29,7 +29,7 @@ type Events struct {
 	Events []Event `json:"events"`
 }
 
-type Response struct {
+type EventsByAuthKey struct {
 	Events []Events `json:"events"`
 }
 
