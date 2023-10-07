@@ -2,11 +2,12 @@ package service
 
 import (
 	"bytes"
-	"cli-service/internal/model"
-	"cli-service/internal/service/dto"
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/service/dto"
 )
 
 func (s *CLIService) Send(events model.Events) error {

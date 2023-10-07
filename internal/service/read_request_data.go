@@ -1,11 +1,12 @@
 package service
 
 import (
-	"cli-service/internal/model"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
 )
 
 var (

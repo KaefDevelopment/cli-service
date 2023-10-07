@@ -1,15 +1,16 @@
 package main
 
 import (
-	"cli-service/internal/connection"
-	"cli-service/internal/model"
-	cliservice "cli-service/internal/service"
-	"cli-service/internal/service/repository"
 	"flag"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/jaroslav1991/cli-service/internal/connection"
+	"github.com/jaroslav1991/cli-service/internal/model"
+	cliservice "github.com/jaroslav1991/cli-service/internal/service"
+	"github.com/jaroslav1991/cli-service/internal/service/repository"
 )
 
 var (

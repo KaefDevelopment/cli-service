@@ -1,10 +1,12 @@
 package repository
 
 import (
-	"cli-service/internal/model"
-	"cli-service/internal/service/dto"
-	"gorm.io/gorm"
 	"log"
+
+	"gorm.io/gorm"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/service/dto"
 )
 
 type CLIRepository struct {

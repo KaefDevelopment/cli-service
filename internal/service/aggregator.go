@@ -1,11 +1,13 @@
 package service
 
 import (
-	"cli-service/internal/model"
-	"github.com/google/uuid"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/google/uuid"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
 )
 
 var (
