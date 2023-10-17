@@ -31,7 +31,7 @@ func GetUUID() string {
 	return uuid.New().String()
 }
 
-func (s *CLIService) Aggregate(events model.Events) error {
+func (s *CLIService) Aggregate(events model.Events) {
 	for i := range events.Events {
 		if events.Events[i].Branch != "" {
 			continue
@@ -48,6 +48,4 @@ func (s *CLIService) Aggregate(events model.Events) error {
 		}
 
 	}
-
-	return nil
 }
