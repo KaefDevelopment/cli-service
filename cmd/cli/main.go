@@ -88,9 +88,7 @@ func main() {
 		return
 	}
 
-	if err := service.Aggregate(requestData); err != nil {
-		return
-	}
+	service.Aggregate(requestData)
 
 	if err = service.CreateEvents(requestData); err != nil {
 		return

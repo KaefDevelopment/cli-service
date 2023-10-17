@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -10,7 +11,16 @@ import (
 	"github.com/jaroslav1991/cli-service/internal/service/dto"
 )
 
+var (
+	errInternalServer = errors.New("internal server error")
+)
+
 func (s *CLIService) Send(events model.Events) error {
+	if len(events.Events) == 0 {
+		log.Println("empty events to send")
+		return nil
+	}
+
 	var resEvent dto.Events
 
 	for i := range events.Events {
@@ -51,5 +61,12 @@ func (s *CLIService) Send(events model.Events) error {
 		return err
 	}
 
-	return resp.Body.Close()
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 500 {
+		log.Println("fail status code:", resp.Header)
+		return errInternalServer
+	}
+
+	return nil
 }
