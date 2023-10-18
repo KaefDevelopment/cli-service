@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -68,11 +69,11 @@ func TestCLIService_GetKeys_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := NewMockRepository(ctrl)
-	repo.EXPECT().GetAuthKeys().Return(nil, errAuthKey)
+	repo.EXPECT().GetAuthKeys().Return(nil, utils.ErrAuthKey)
 
 	service := NewCLIService(repo, "", "")
 	_, err := service.GetKeys()
-	assert.ErrorIs(t, err, errAuthKey)
+	assert.ErrorIs(t, err, utils.ErrAuthKey)
 }
 
 func TestCLIService_GetEvents_Positive(t *testing.T) {

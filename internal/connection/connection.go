@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"github.com/jaroslav1991/cli-service/internal/utils"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
@@ -18,9 +19,10 @@ func OpenDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + "cli.db"))
+	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + "nau" + string(os.PathSeparator) + "cli.db"))
 	if err != nil {
 		log.Println("open db failed:", err)
+		utils.WriteErrorResponse(utils.ErrConnectDB)
 		return nil, err
 	}
 

@@ -13,18 +13,26 @@ import (
 var (
 	getBranchFn = GetBranchByProjectBaseDir
 	getIDFn     = GetUUID
+	branchCache = make(map[string]string)
 )
 
 func GetBranchByProjectBaseDir(projectBaseDir string) string {
+	if cachedBranch, ok := branchCache[projectBaseDir]; ok {
+		return cachedBranch
+	}
+
 	filename := projectBaseDir + string(os.PathSeparator) + ".git" + string(os.PathSeparator) + "HEAD"
 
 	currentBranch, err := os.ReadFile(filename)
 	if err != nil {
 		log.Printf("current branch path not found: %v", err)
-		return ""
+		branchCache[projectBaseDir] = ""
 	}
 
-	return strings.TrimSpace(strings.ReplaceAll(string(currentBranch), "ref: refs/heads/", ""))
+	branchName := strings.TrimSpace(strings.ReplaceAll(string(currentBranch), "ref: refs/heads/", ""))
+	branchCache[projectBaseDir] = branchName
+
+	return branchName
 }
 
 func GetUUID() string {
