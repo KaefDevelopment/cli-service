@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"os"
@@ -40,7 +41,15 @@ func init() {
 		return
 	}
 
-	fileInfo, err := os.OpenFile(homeDir+string(os.PathSeparator)+"cli-logger.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
+	if err := os.Mkdir(homeDir+string(os.PathSeparator)+"nau", os.ModePerm); err != nil && !errors.Is(err, os.ErrExist) {
+		log.Println(err)
+		return
+	}
+
+	fileInfo, err := os.OpenFile(
+		homeDir+string(os.PathSeparator)+"nau"+string(os.PathSeparator)+"cli-logger.txt",
+		os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
+	)
 	if err != nil {
 		log.Println(err)
 		return

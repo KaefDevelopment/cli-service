@@ -2,15 +2,10 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
-
 	"github.com/jaroslav1991/cli-service/internal/model"
-)
-
-var (
-	errAuthKey = errors.New("failed with auth key from request events")
+	"github.com/jaroslav1991/cli-service/internal/utils"
+	"log"
 )
 
 func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
@@ -18,6 +13,7 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 
 	if err := json.Unmarshal([]byte(request), &requestModel); err != nil {
 		log.Println("read data unmarshal failed:", err)
+		utils.WriteErrorResponse(utils.ErrReadRequestDataUnmarshal)
 		return model.Events{}, err
 	}
 
@@ -26,9 +22,14 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 
 		if s.authKey == "" {
 			log.Println("fail with auth key, couldn't be empty")
-			return model.Events{}, fmt.Errorf("%v", errAuthKey)
+			utils.WriteErrorResponse(utils.ErrAuthKey)
+			return model.Events{}, fmt.Errorf("%v", utils.ErrAuthKey)
 		}
 	}
+
+	utils.WriteSuccessResponse(utils.ResponseForPlugin{
+		Status: "Success",
+	})
 
 	return requestModel, nil
 }
