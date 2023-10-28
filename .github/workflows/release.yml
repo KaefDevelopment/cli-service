@@ -4,20 +4,25 @@ name: Release
 
 on:
   push:
+    branches:
+      - "*"
     tags: [ "*" ]
 
 jobs:
   release:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: 1.21
+
+      - name: Set up gon
+        run: brew install mitchellh/gon/gon
 
       - name: Build
         uses: crazy-max/ghaction-xgo@v3
@@ -27,13 +32,49 @@ jobs:
           go_version: 1.21
           dest: bin
           prefix: cli
-          targets: windows/386,windows/amd64,windows/arm,darwin/amd64,darwin/arm64,linux/386,linux/amd64,linux/arm,linux/arm64
+          targets: darwin/amd64,darwin/arm64
           v: true
           x: false
           race: false
           ldflags: -s -w
           buildmode: default
           trimpath: true
+
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERT }}
+          P12_PASSWORD: ''
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: Sign apple binaries
+        env:
+          AC_PASS: ${{ secrets.AC_PASS }}
+        run: |
+          gon -log-json -log-level debug gon_arm64.hcl
+          gon -log-json -log-level debug gon_amd64.hcl
 
       - name: Archive binaries
         run: make zip-artifacts
