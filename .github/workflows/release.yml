@@ -4,8 +4,6 @@ name: Release
 
 on:
   push:
-    branches:
-      - "*"
     tags: [ "*" ]
 
 jobs:
@@ -29,7 +27,7 @@ jobs:
           go_version: 1.21
           dest: bin
           prefix: cli
-          targets: darwin/amd64,darwin/arm64
+          targets: windows/386,windows/amd64,windows/arm,darwin/amd64,darwin/arm64,linux/386,linux/amd64,linux/arm,linux/arm64
           v: true
           x: false
           race: false
@@ -55,10 +53,6 @@ jobs:
         with:
           name: binaries
           path: ./bin/
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: ./bin/
 
       - name: Set up gon
         run: brew install mitchellh/gon/gon
