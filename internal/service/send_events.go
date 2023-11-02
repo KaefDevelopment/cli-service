@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/jaroslav1991/cli-service/internal/model"
@@ -17,7 +18,7 @@ var (
 
 func (s *CLIService) Send(events model.Events) error {
 	if len(events.Events) == 0 {
-		log.Println("empty events to send")
+		slog.Warn("empty events to send")
 		return nil
 	}
 
@@ -42,13 +43,13 @@ func (s *CLIService) Send(events model.Events) error {
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {
-		log.Println("fail marshal to sending:", err)
+		slog.Error("fail marshal to sending:", err)
 		return err
 	}
 
 	req, err := http.NewRequest("POST", s.httpAddr, bytes.NewBuffer(bytesEventsSend))
 	if err != nil {
-		log.Println("fail to send events:", err)
+		slog.Error("fail to send events:", err)
 		return err
 	}
 
@@ -57,14 +58,14 @@ func (s *CLIService) Send(events model.Events) error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println("fail with do sends:", err)
+		slog.Warn("fail with do sends:", err)
 		return err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 500 {
-		log.Println("fail status code:", resp.Header)
+		slog.Error("fail status code:", resp.Header)
 		return errInternalServer
 	}
 

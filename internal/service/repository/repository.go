@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"log"
+	"log/slog"
 
 	"gorm.io/gorm"
 
@@ -20,7 +20,7 @@ func NewCLIRepository(db *gorm.DB) *CLIRepository {
 func (repo *CLIRepository) Create(events model.Events) error {
 	result := repo.db.Create(&events.Events)
 	if result.Error != nil {
-		log.Println("error with create gorm model:", result.Error)
+		slog.Error("error with create gorm model:", slog.String("err", result.Error.Error()))
 		return result.Error
 	}
 
@@ -30,7 +30,7 @@ func (repo *CLIRepository) Create(events model.Events) error {
 func (repo *CLIRepository) Update() error {
 	result := repo.db.Table("events").Where("send = ?", 0).Updates(map[string]interface{}{"send": 1})
 	if result.Error != nil {
-		log.Println("fail with update gorm column:", result.Error)
+		slog.Error("fail with update gorm column:", slog.String("err", result.Error.Error()))
 	}
 
 	return nil
@@ -44,7 +44,7 @@ func (repo *CLIRepository) Get(authKey []string) (model.EventsByAuthKey, error) 
 
 		result := repo.db.Where("send = ?", 1).Where("authKey = ?", key).Find(&events.Events)
 		if result.Error != nil {
-			log.Println("fail with find events gorm:", result.Error)
+			slog.Error("fail with find events gorm:", slog.String("err", result.Error.Error()))
 			return model.EventsByAuthKey{}, result.Error
 		}
 
@@ -61,7 +61,7 @@ func (repo *CLIRepository) GetAuthKeys() ([]string, error) {
 
 	rows, err := result.Rows()
 	if err != nil {
-		log.Println("fail with rows gorm:", err)
+		slog.Error("fail with rows gorm:", slog.String("err", err.Error()))
 		return nil, err
 	}
 
@@ -73,7 +73,7 @@ func (repo *CLIRepository) GetAuthKeys() ([]string, error) {
 		var authKey model.Event
 
 		if err := rows.Scan(&authKey.AuthKey); err != nil {
-			log.Println("fail rows scan gorm:", err)
+			slog.Error("fail rows scan gorm:", slog.String("err", err.Error()))
 			return nil, err
 		}
 
@@ -88,11 +88,11 @@ func (repo *CLIRepository) Drop() error {
 
 	result := repo.db.Where("send = ?", "1").Delete(&events.Events)
 	if result.Error != nil {
-		log.Println("fail delete events gorm:", result.Error)
+		slog.Error("fail delete events gorm:", slog.String("err", result.Error.Error()))
 		return result.Error
 	}
 
-	log.Println("deleting successful")
+	slog.Info("deleting successful")
 
 	return nil
 }

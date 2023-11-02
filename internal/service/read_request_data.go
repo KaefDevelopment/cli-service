@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"github.com/jaroslav1991/cli-service/internal/model"
 	"github.com/jaroslav1991/cli-service/internal/utils"
-	"log"
+	"log/slog"
 )
 
 func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 	var requestModel model.Events
 
 	if err := json.Unmarshal([]byte(request), &requestModel); err != nil {
-		log.Println("read data unmarshal failed:", err)
+		slog.Error("read data unmarshal failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrReadRequestDataUnmarshal)
 		return model.Events{}, err
 	}
@@ -21,7 +21,7 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 		requestModel.Events[i].AuthKey = s.authKey
 
 		if s.authKey == "" {
-			log.Println("fail with auth key, couldn't be empty")
+			slog.Error("fail with auth key, couldn't be empty", slog.String("err", utils.ErrAuthKey.Error()))
 			utils.WriteErrorResponse(utils.ErrAuthKey)
 			return model.Events{}, fmt.Errorf("%v", utils.ErrAuthKey)
 		}

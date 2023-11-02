@@ -1,7 +1,7 @@
 package service
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -25,7 +25,7 @@ func GetBranchByProjectBaseDir(projectBaseDir string) string {
 
 	currentBranch, err := os.ReadFile(filename)
 	if err != nil {
-		log.Printf("current branch path not found: %v", err)
+		slog.Warn("current branch path not found:", slog.String("err", err.Error()))
 		branchCache[projectBaseDir] = ""
 	}
 

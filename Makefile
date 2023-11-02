@@ -33,3 +33,9 @@ send-event:
 .PHONY: start-mock
 start-mock:
 	go run ./cmd/mock/main.go
+
+## unix - '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}'
+
+## windows - "{\"events\":[{\"id\":\"\","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}"
+
+

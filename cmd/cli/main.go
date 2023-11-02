@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -54,12 +55,13 @@ func init() {
 		log.Println(err)
 		return
 	}
-	log.SetOutput(fileInfo)
 
+	logger := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
 }
 
 func main() {
-	log.Println("start cli...")
+	slog.Info("start cli...")
 
 	flag.Parse()
 
@@ -68,7 +70,7 @@ func main() {
 	var err error
 	defer func() {
 		if err != nil {
-			log.Println("error:", err)
+			slog.Error("error:", slog.String("err", err.Error()))
 		}
 
 		log.Println("ending time:", time.Since(now))
