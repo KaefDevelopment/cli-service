@@ -2,7 +2,7 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"log"
+	"log/slog"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 func CreateTable(db *gorm.DB) error {
 	tx := db.Exec(createTableQuery)
 	if tx.Error != nil {
-		log.Println("create table failed:", tx.Error)
+		slog.Error("create table failed:", slog.String("err", tx.Error.Error()))
 		return tx.Error
 	}
 

@@ -8,20 +8,20 @@ import (
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "gorm.io/gorm"
-	"log"
+	"log/slog"
 	"os"
 )
 
 func OpenDB() (*gorm.DB, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Println("fail with home directory:", err)
+		slog.Error("fail with home directory:", slog.String("err", err.Error()))
 		return nil, err
 	}
 
 	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + "nau" + string(os.PathSeparator) + "cli.db"))
 	if err != nil {
-		log.Println("open db failed:", err)
+		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)
 		return nil, err
 	}
