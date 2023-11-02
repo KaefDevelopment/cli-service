@@ -49,7 +49,7 @@ func (s *CLIService) Send(events model.Events) error {
 
 	req, err := http.NewRequest("POST", s.httpAddr, bytes.NewBuffer(bytesEventsSend))
 	if err != nil {
-		slog.Error("fail to send events:", err)
+		slog.Error("fail to send events:", slog.String("err", err.Error()))
 		return err
 	}
 
@@ -65,7 +65,7 @@ func (s *CLIService) Send(events model.Events) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 500 {
-		slog.Error("fail status code:", resp.Header)
+		slog.Error("fail status code:", slog.Any("err", resp.Header))
 		return errInternalServer
 	}
 
