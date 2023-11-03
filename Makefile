@@ -19,7 +19,7 @@ $(PLATFORMS): OS=$(word 1,$(split))
 $(PLATFORMS): ARCH=$(word 2,$(split))
 $(PLATFORMS): ARTIFACT_NAME=$(PROJECT_NAME)-$(OS)-$(ARCH)$(EXT)
 $(PLATFORMS):
-	env GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=1 go build -ldflags="-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(ARTIFACT_NAME) cmd/cli/main.go
+	env GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=1 go build -ldflags="-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(ARTIFACT_NAME) cmd/cli/main.go
 
 .PHONY: zip-artifacts
 zip-artifacts: $(foreach f,$(wildcard $(BUILD_DIR)/*[^zip]),$(f).zip)
@@ -38,5 +38,3 @@ start-mock:
 ## unix - '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}'
 
 ## windows -d "{\"events\":[{\"id\":\"\",\"createdAt\":\"3\",\"type\":\"2\",\"project\":\"2\",\"projectBaseDir\":\"/mnt/c/Users/jaros/GolandProjects/tts\",\"language\":\"golang\",\"target\":\"2\",\"branch\":\"\",\"timezone\":\"2\",\"params\":{\"count\":\"12\"}}]}" -k "346d7f75-4b20-4166-8577-e656cdf3caec" -cli-version=true
-
-
