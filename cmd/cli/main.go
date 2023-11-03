@@ -40,7 +40,7 @@ var (
 		"Get info about cli version",
 	)
 
-	version string
+	Version string
 )
 
 func init() {
@@ -125,7 +125,7 @@ func main() {
 	eventsToSend, err := service.GetEvents(keys)
 
 	for _, event := range eventsToSend.Events {
-		if err := service.Send(event, version); err != nil {
+		if err := service.Send(event, Version); err != nil {
 			return
 		}
 	}
