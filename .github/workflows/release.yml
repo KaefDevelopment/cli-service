@@ -92,7 +92,7 @@ jobs:
           AC_PASS: ${{ secrets.AC_PASS }}
         run: |
           gon -log-json -log-level debug gon_arm64.hcl
-          gon -log-json -log-level debug gon_amd64.hcl
+#          gon -log-json -log-level debug gon_amd64.hcl
 
       - name: Archive binaries
         run: make zip-artifacts
