@@ -1,6 +1,6 @@
 PROJECT_NAME=cli
 BUILD_DIR=./bin
-VERSION=$(git describe --tags --abbrev=0)
+VERSION=$(shell git describe --tags --abbrev=0)
 
 # go tool dist list
 WINDOWS=windows/386 windows/amd64 windows/arm
