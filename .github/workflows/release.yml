@@ -27,11 +27,12 @@ jobs:
           go_version: 1.21
           dest: bin
           prefix: cli
-          targets: windows/386,windows/amd64,windows/arm,darwin/amd64,darwin/arm64,linux/386,linux/amd64,linux/arm,linux/arm64
+#          targets: windows/386,windows/amd64,windows/arm,darwin/amd64,darwin/arm64,linux/386,linux/amd64,linux/arm,linux/arm64
+          targets: darwin/arm64
           v: true
           x: false
           race: false
-          ldflags: -s -w
+          ldflags: -s -w -X main.version=${{ github.ref }}
           buildmode: default
           trimpath: true
 
