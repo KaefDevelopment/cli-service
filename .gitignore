@@ -2,3 +2,4 @@
 cli.db
 cli-logger.txt
 bin
+Dockerfile

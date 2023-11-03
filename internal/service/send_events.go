@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -16,7 +17,7 @@ var (
 	errInternalServer = errors.New("internal server error")
 )
 
-func (s *CLIService) Send(events model.Events) error {
+func (s *CLIService) Send(events model.Events, version string) error {
 	if len(events.Events) == 0 {
 		slog.Warn("empty events to send")
 		return nil
@@ -51,6 +52,10 @@ func (s *CLIService) Send(events model.Events) error {
 	if err != nil {
 		slog.Error("fail to send events:", slog.String("err", err.Error()))
 		return err
+	}
+
+	if s.cliVersion {
+		fmt.Println("cli version", version)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
