@@ -33,6 +33,14 @@ var (
 		"",
 		"authorization key",
 	)
+
+	cliVersion = flag.Bool(
+		"cli-version",
+		false,
+		"Get info about cli version",
+	)
+
+	version string
 )
 
 func init() {
@@ -92,7 +100,7 @@ func main() {
 	}
 
 	repo := repository.NewCLIRepository(db)
-	service := cliservice.NewCLIService(repo, *httpAddr, *authKey)
+	service := cliservice.NewCLIService(repo, *httpAddr, *authKey, *cliVersion)
 
 	requestData, err := service.ReadRequestData(*inputData)
 	if err != nil {
@@ -117,7 +125,7 @@ func main() {
 	eventsToSend, err := service.GetEvents(keys)
 
 	for _, event := range eventsToSend.Events {
-		if err := service.Send(event); err != nil {
+		if err := service.Send(event, version); err != nil {
 			return
 		}
 	}

@@ -24,6 +24,8 @@ var (
 		AuthKey:        "12345",
 		Send:           false,
 	}}}
+
+	version = "1.0.0"
 )
 
 func TestCLIService_Send_Positive(t *testing.T) {
@@ -38,7 +40,7 @@ func TestCLIService_Send_Positive(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.Send(testEvents)
+	actualErr := service.Send(testEvents, version)
 	assert.NoError(t, actualErr)
 }
 
@@ -51,14 +53,14 @@ func TestCLIService_Send_Error_500(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.Send(testEvents)
+	actualErr := service.Send(testEvents, version)
 	assert.ErrorIs(t, actualErr, errInternalServer)
 }
 
 func TestCLIService_Send_Error(t *testing.T) {
 	service := CLIService{}
 
-	actualErr := service.Send(testEvents)
+	actualErr := service.Send(testEvents, version)
 	assert.Error(t, actualErr)
 }
 
@@ -67,6 +69,6 @@ func TestCLIService_Send_Empty(t *testing.T) {
 
 	service := CLIService{}
 
-	actualErr := service.Send(actualData)
+	actualErr := service.Send(actualData, version)
 	assert.NoError(t, actualErr)
 }
