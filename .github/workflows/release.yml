@@ -32,7 +32,7 @@ jobs:
           v: true
           x: false
           race: false
-          ldflags: -s -w -X main.version=${{ github.ref }}
+          ldflags: -s -w -X main.version=${{ github.ref_name }}
           buildmode: default
           trimpath: true
 
