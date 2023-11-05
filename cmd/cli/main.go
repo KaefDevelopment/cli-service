@@ -133,6 +133,6 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		slog.Error("error:", slog.String("err", err.Error()))
+		log.Fatal("can't execute root command:", err)
 	}
 }
