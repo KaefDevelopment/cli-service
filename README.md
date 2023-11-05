@@ -16,12 +16,12 @@ make send-event
 
 ## How to get cli version
 
-[your binary file] cli-version
+[your binary file] version
 
 ## How to send event
 
 Usage:                                                                                                                                      
-cli-event [flags]
+event [flags]
 
 Flags:                                                                                                                                      
 -k, --auth-key string     Authorization key                                                                                              

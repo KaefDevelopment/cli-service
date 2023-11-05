@@ -26,8 +26,8 @@ var (
 		Long:  "Root command for CLI",
 	}
 
-	cliCmd = &cobra.Command{
-		Use:   "cli-version",
+	versionCmd = &cobra.Command{
+		Use:   "version",
 		Short: "Get cli version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(version)
@@ -35,7 +35,7 @@ var (
 	}
 
 	eventCmd = &cobra.Command{
-		Use:   "cli-event",
+		Use:   "event",
 		Short: "Event data in JSON format string",
 		Long:  "using with event flag",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -105,7 +105,7 @@ func init() {
 	eventCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key")
 	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
 
-	rootCmd.AddCommand(eventCmd, cliCmd)
+	rootCmd.AddCommand(eventCmd, versionCmd)
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
