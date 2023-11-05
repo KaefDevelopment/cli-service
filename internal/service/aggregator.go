@@ -25,7 +25,11 @@ func GetBranchByProjectBaseDir(projectBaseDir string) string {
 
 	currentBranch, err := os.ReadFile(filename)
 	if err != nil {
-		slog.Warn("current branch path not found:", slog.String("err", err.Error()))
+		slog.Warn("current branch path not found:",
+			slog.String("err", err.Error()),
+			slog.String("projectBaseDir", projectBaseDir),
+			slog.String("filename", filename),
+		)
 		branchCache[projectBaseDir] = ""
 	}
 
