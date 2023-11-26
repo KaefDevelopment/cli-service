@@ -53,11 +53,13 @@ func TestCLIService_Aggregate_IDEmpty(t *testing.T) {
 	}
 
 	events := model.Events{Events: []model.Event{{
-		Id: "",
+		Id:             "",
+		ProjectBaseDir: "test",
 	}}}
 
 	expected := model.Events{Events: []model.Event{{
-		Id: getIDFn(),
+		Id:             getIDFn(),
+		ProjectBaseDir: "test",
 	}}}
 
 	service.Aggregate(events)
@@ -94,6 +96,27 @@ func TestCLIService_Aggregate_BranchNotEmpty(t *testing.T) {
 	expected := model.Events{Events: []model.Event{{
 		Id:     "123",
 		Branch: "master",
+	}}}
+
+	service.Aggregate(events)
+	assert.Equal(t, expected, events)
+}
+
+func TestCLIService_Aggregate_ProjectBaseDir_Empty(t *testing.T) {
+	service := CLIService{authKey: "12345"}
+
+	events := model.Events{Events: []model.Event{{
+		Id:             "123",
+		CreatedAt:      "123456789",
+		Type:           "test",
+		ProjectBaseDir: "",
+	}}}
+
+	expected := model.Events{Events: []model.Event{{
+		Id:             "123",
+		CreatedAt:      "123456789",
+		Type:           "test",
+		ProjectBaseDir: "",
 	}}}
 
 	service.Aggregate(events)

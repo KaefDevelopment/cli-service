@@ -38,6 +38,35 @@ func TestCLIService_CreateEvents(t *testing.T) {
 
 }
 
+func TestCLIService_CreateEvents_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	events := model.Events{Events: []model.Event{{
+		Id:             "123",
+		CreatedAt:      "1",
+		Type:           "1",
+		Project:        "1",
+		ProjectBaseDir: "1",
+		Language:       "golang",
+		Target:         "1",
+		Branch:         "master",
+		Timezone:       "1",
+		Params:         nil,
+		AuthKey:        "",
+		Send:           false,
+	}}}
+
+	repo := NewMockRepository(ctrl)
+	repo.EXPECT().Create(events).Return(utils.ErrReadRequestDataUnmarshal)
+
+	service := NewCLIService(repo, "", "")
+
+	err := service.CreateEvents(events)
+	assert.Error(t, err)
+
+}
+
 func TestCLIService_UpdateEvents(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

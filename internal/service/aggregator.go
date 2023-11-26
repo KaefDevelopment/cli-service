@@ -17,6 +17,10 @@ var (
 )
 
 func GetBranchByProjectBaseDir(projectBaseDir string) string {
+	if projectBaseDir == "" {
+		return ""
+	}
+
 	if cachedBranch, ok := branchCache[projectBaseDir]; ok {
 		return cachedBranch
 	}

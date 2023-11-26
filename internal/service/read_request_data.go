@@ -12,7 +12,7 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 	var requestModel model.Events
 
 	if err := json.Unmarshal([]byte(request), &requestModel); err != nil {
-		slog.Error("read data unmarshal failed:", slog.String("err", err.Error()))
+		slog.Error("read data unmarshal failed:", slog.String("json", request), slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrReadRequestDataUnmarshal)
 		return model.Events{}, err
 	}
@@ -26,10 +26,6 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 			return model.Events{}, fmt.Errorf("%v", utils.ErrAuthKey)
 		}
 	}
-
-	utils.WriteSuccessResponse(utils.ResponseForPlugin{
-		Status: "Success",
-	})
 
 	return requestModel, nil
 }

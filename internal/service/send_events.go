@@ -69,7 +69,7 @@ func (s *CLIService) Send(events model.Events) error {
 		return errInternalServer
 	}
 
-	log.Printf("sent %d events", len(events.Events))
+	log.Printf("%s sent %d events", events.Events[0].AuthKey, len(events.Events))
 
 	return nil
 }
