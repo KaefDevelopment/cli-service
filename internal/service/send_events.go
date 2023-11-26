@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -17,7 +16,7 @@ var (
 	errInternalServer = errors.New("internal server error")
 )
 
-func (s *CLIService) Send(events model.Events, version string) error {
+func (s *CLIService) Send(events model.Events) error {
 	if len(events.Events) == 0 {
 		slog.Warn("empty events to send")
 		return nil
@@ -44,7 +43,7 @@ func (s *CLIService) Send(events model.Events, version string) error {
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {
-		slog.Error("fail marshal to sending:", err)
+		slog.Error("fail marshal to sending:", slog.String("err", err.Error()))
 		return err
 	}
 
@@ -54,16 +53,12 @@ func (s *CLIService) Send(events model.Events, version string) error {
 		return err
 	}
 
-	if s.cliVersion {
-		fmt.Println("cli version", version)
-	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", events.Events[0].AuthKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		slog.Warn("fail with do sends:", err)
+		slog.Warn("fail with do sends:", slog.String("err", err.Error()))
 		return err
 	}
 
@@ -74,7 +69,7 @@ func (s *CLIService) Send(events model.Events, version string) error {
 		return errInternalServer
 	}
 
-	log.Printf("sent %d events", len(events.Events))
+	log.Printf("%s sent %d events", events.Events[0].AuthKey, len(events.Events))
 
 	return nil
 }

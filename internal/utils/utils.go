@@ -7,26 +7,26 @@ import (
 )
 
 type ResponseForPlugin struct {
-	Status   string `json:"status"`
-	Response any    `json:"response"`
+	Status bool   `json:"status"`
+	Error  string `json:"error"`
 }
 
 func WriteErrorResponse(err error) {
 	response := ResponseForPlugin{
-		Status:   "Error",
-		Response: nil,
+		Status: false,
+		Error:  err.Error(),
 	}
 
 	if errors.Is(err, ErrAuthKey) {
-		response.Response = err.Error()
+		response.Error = err.Error()
 	}
 
 	if errors.Is(err, ErrConnectDB) {
-		response.Response = err.Error()
+		response.Error = err.Error()
 	}
 
 	if errors.Is(err, ErrReadRequestDataUnmarshal) {
-		response.Response = err.Error()
+		response.Error = err.Error()
 	}
 
 	WriteSuccessResponse(response)

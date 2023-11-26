@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestWriteErrorResponse1(t *testing.T) {
 	}{
 		{
 			name: "standard error",
-			args: args{err: nil},
+			args: args{err: errors.New("")},
 		},
 		{
 			name: "auth error",

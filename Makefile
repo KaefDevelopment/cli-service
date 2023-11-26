@@ -29,12 +29,20 @@ $(BUILD_DIR)/%.zip:
 
 .PHONY: send-event
 send-event:
-	go run ./cmd/cli/main.go -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"27"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -cli-version=true
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+.PHONY: send-bad-event
+send-bad-event:
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+.PHONY: version
+version:
+	go run ./cmd/cli/main.go version
 
 .PHONY: start-mock
 start-mock:
 	go run ./cmd/mock/main.go
 
-## unix - '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}'
 
-## windows -d "{\"events\":[{\"id\":\"\",\"createdAt\":\"3\",\"type\":\"2\",\"project\":\"2\",\"projectBaseDir\":\"/mnt/c/Users/jaros/GolandProjects/tts\",\"language\":\"golang\",\"target\":\"2\",\"branch\":\"\",\"timezone\":\"2\",\"params\":{\"count\":\"12\"}}]}" -k "346d7f75-4b20-4166-8577-e656cdf3caec" -cli-version=true
+
+

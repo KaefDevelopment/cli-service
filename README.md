@@ -14,17 +14,22 @@ Send test event through cli
 make send-event
 ```
 
-### How to send data
+## How to get cli version
 
--d string                                                                     
-Request data in JSON format string
+[your binary file] version
 
--k string                                                           
-authorization key (plugin_id)
+## How to send event
 
--s string                                                                     
-Http address for sending events (default "http://localhost:8181/events")
+Usage:                                                                                                                                      
+event [flags]
 
-### Example:
+Flags:                                                                                                                                      
+-k, --auth-key string     Authorization key                                                                                              
+-d, --data string          Request data in JSON format string                                                                             
+-h, --help                 help for cli-event                                                                                             
+-s, --server-host string   Http address for sending events (default "https://nautime.io/api/plugin/v1/events?source=cli&version=$version")
 
-[your binary file] -d '{"events":[{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"id":"","createdAt":"2","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"17"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caea" -s "https://kaef.io/api/plugin/v1/events"
+### Example
+
+[your binary file] event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec"
+

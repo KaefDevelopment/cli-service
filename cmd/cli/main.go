@@ -2,48 +2,111 @@ package main
 
 import (
 	"errors"
-	"flag"
-	"log"
-	"log/slog"
-	"os"
-	"strings"
-	"time"
-
+	"fmt"
 	"github.com/jaroslav1991/cli-service/internal/connection"
 	"github.com/jaroslav1991/cli-service/internal/model"
 	cliservice "github.com/jaroslav1991/cli-service/internal/service"
 	"github.com/jaroslav1991/cli-service/internal/service/repository"
+	"github.com/spf13/cobra"
+	"log"
+	"log/slog"
+	"os"
+	"time"
 )
 
 var (
-	inputData = flag.String(
-		"d",
-		"",
-		"Request data in JSON format string",
-	)
+	inputData string
+	httpAddr  string
+	authKey   string
+	version   string
 
-	httpAddr = flag.String(
-		"s",
-		"http://localhost:8181/events",
-		"Http address for sending events",
-	)
+	rootCmd = &cobra.Command{
+		Use:   "cli",
+		Short: "Root command",
+		Long:  "Root command for CLI",
+	}
 
-	authKey = flag.String(
-		"k",
-		"",
-		"authorization key",
-	)
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Get cli version",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(version)
+		},
+	}
 
-	cliVersion = flag.Bool(
-		"cli-version",
-		false,
-		"Get info about cli version",
-	)
+	eventCmd = &cobra.Command{
+		Use:   "event",
+		Short: "Event data in JSON format string",
+		Long:  "using with event flag",
+		Run: func(cmd *cobra.Command, args []string) {
+			slog.Info("start cli...")
 
-	version string
+			now := time.Now()
+
+			var err error
+			defer func() {
+				if err != nil {
+					slog.Error("error:", slog.String("err", err.Error()))
+				}
+
+				log.Println("ending time:", time.Since(now))
+				log.Println("ending cli")
+			}()
+
+			db, err := connection.OpenDB()
+			if err != nil {
+				return
+			}
+
+			if err := model.CreateTable(db); err != nil {
+				return
+			}
+
+			repo := repository.NewCLIRepository(db)
+			service := cliservice.NewCLIService(repo, httpAddr, authKey)
+
+			requestData, err := service.ReadRequestData(inputData)
+			if err != nil {
+				return
+			}
+
+			service.Aggregate(requestData)
+
+			if err = service.CreateEvents(requestData); err != nil {
+				return
+			}
+
+			if err = service.UpdateEvents(); err != nil {
+				return
+			}
+
+			keys, err := service.GetKeys()
+			if err != nil {
+				return
+			}
+
+			eventsToSend, err := service.GetEvents(keys)
+
+			for _, event := range eventsToSend.Events {
+				if err := service.Send(event); err != nil {
+					return
+				}
+			}
+
+			if err := service.Delete(); err != nil {
+				return
+			}
+		},
+	}
 )
 
 func init() {
+	eventCmd.Flags().StringVarP(&inputData, "data", "d", "", "Request data in JSON format string")
+	eventCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key")
+	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
+
+	rootCmd.AddCommand(eventCmd, versionCmd)
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Println(err)
@@ -69,68 +132,7 @@ func init() {
 }
 
 func main() {
-	slog.Info("start cli...")
-
-	flag.Parse()
-
-	now := time.Now()
-
-	var err error
-	defer func() {
-		if err != nil {
-			slog.Error("error:", slog.String("err", err.Error()))
-		}
-
-		log.Println("ending time:", time.Since(now))
-		log.Println("ending cli")
-	}()
-
-	if strings.TrimSpace(*inputData) == "" {
-		flag.Usage()
-		return
-	}
-
-	db, err := connection.OpenDB()
-	if err != nil {
-		return
-	}
-
-	if err := model.CreateTable(db); err != nil {
-		return
-	}
-
-	repo := repository.NewCLIRepository(db)
-	service := cliservice.NewCLIService(repo, *httpAddr, *authKey, *cliVersion)
-
-	requestData, err := service.ReadRequestData(*inputData)
-	if err != nil {
-		return
-	}
-
-	service.Aggregate(requestData)
-
-	if err = service.CreateEvents(requestData); err != nil {
-		return
-	}
-
-	if err = service.UpdateEvents(); err != nil {
-		return
-	}
-
-	keys, err := service.GetKeys()
-	if err != nil {
-		return
-	}
-
-	eventsToSend, err := service.GetEvents(keys)
-
-	for _, event := range eventsToSend.Events {
-		if err := service.Send(event, version); err != nil {
-			return
-		}
-	}
-
-	if err := service.Delete(); err != nil {
-		return
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal("can't execute root command:", err)
 	}
 }

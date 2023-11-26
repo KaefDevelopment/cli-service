@@ -7,14 +7,13 @@ import (
 )
 
 type CLIService struct {
-	repo       Repository
-	httpAddr   string
-	authKey    string
-	cliVersion bool
+	repo     Repository
+	httpAddr string
+	authKey  string
 }
 
-func NewCLIService(repo Repository, httpAddr, authKey string, cliVersion bool) *CLIService {
-	return &CLIService{repo: repo, httpAddr: httpAddr, authKey: authKey, cliVersion: cliVersion}
+func NewCLIService(repo Repository, httpAddr, authKey string) *CLIService {
+	return &CLIService{repo: repo, httpAddr: httpAddr, authKey: authKey}
 }
 
 type Repository interface {
