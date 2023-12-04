@@ -14,6 +14,7 @@ import (
 
 var (
 	errInternalServer = errors.New("internal server error")
+	errUnauthorized   = errors.New("unauthorized error")
 )
 
 func (s *CLIService) Send(events model.Events) error {
@@ -65,8 +66,13 @@ func (s *CLIService) Send(events model.Events) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 500 {
-		slog.Error("fail status code:", slog.Any("err", resp.Header))
+		slog.Error("fail status code:", slog.Any("status", resp.Status))
 		return errInternalServer
+	}
+
+	if resp.StatusCode == 401 {
+		slog.Error("fail status code:", slog.Any("status", resp.Status))
+		return errUnauthorized
 	}
 
 	log.Printf("%s sent %d events", events.Events[0].AuthKey, len(events.Events))

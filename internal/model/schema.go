@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/jaroslav1991/cli-service/internal/utils"
 	"gorm.io/gorm"
 	"log/slog"
 )
@@ -26,6 +27,7 @@ func CreateTable(db *gorm.DB) error {
 	tx := db.Exec(createTableQuery)
 	if tx.Error != nil {
 		slog.Error("create table failed:", slog.String("err", tx.Error.Error()))
+		utils.WriteErrorResponse(utils.ErrCreateTable)
 		return tx.Error
 	}
 

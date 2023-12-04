@@ -14,6 +14,7 @@ func main() {
 			if err != nil {
 				log.Println(err)
 			}
+
 			fmt.Println("header authorization:", r.Header.Get("Authorization"))
 
 			fmt.Println(string(body))

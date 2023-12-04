@@ -26,7 +26,7 @@ type Event struct {
 }
 
 type Events struct {
-	Events []Event `json:"events"`
+	Events []Event `json:"events" gorm:"-"`
 }
 
 type EventsByAuthKey struct {

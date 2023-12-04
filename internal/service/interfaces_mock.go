@@ -49,17 +49,17 @@ func (mr *MockRepositoryMockRecorder) Create(events interface{}) *gomock.Call {
 }
 
 // Drop mocks base method.
-func (m *MockRepository) Drop() error {
+func (m *MockRepository) Drop(events model.EventsByAuthKey) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Drop")
+	ret := m.ctrl.Call(m, "Drop", events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Drop indicates an expected call of Drop.
-func (mr *MockRepositoryMockRecorder) Drop() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Drop(events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drop", reflect.TypeOf((*MockRepository)(nil).Drop))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drop", reflect.TypeOf((*MockRepository)(nil).Drop), events)
 }
 
 // Get mocks base method.

@@ -25,6 +25,10 @@ func WriteErrorResponse(err error) {
 		response.Error = err.Error()
 	}
 
+	if errors.Is(err, ErrCreateTable) {
+		response.Error = err.Error()
+	}
+
 	if errors.Is(err, ErrReadRequestDataUnmarshal) {
 		response.Error = err.Error()
 	}

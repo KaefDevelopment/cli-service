@@ -1,12 +1,12 @@
 package repository
 
 import (
+	"log"
 	"log/slog"
 
 	"gorm.io/gorm"
 
 	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/service/dto"
 )
 
 type CLIRepository struct {
@@ -28,7 +28,7 @@ func (repo *CLIRepository) Create(events model.Events) error {
 }
 
 func (repo *CLIRepository) Update() error {
-	result := repo.db.Table("events").Where("send = ?", 0).Updates(map[string]interface{}{"send": 1})
+	result := repo.db.Table("events").Where("send = ?", 0).Limit(10000).Updates(map[string]interface{}{"send": 1})
 	if result.Error != nil {
 		slog.Error("fail with update gorm column:", slog.String("err", result.Error.Error()))
 	}
@@ -42,7 +42,7 @@ func (repo *CLIRepository) Get(authKey []string) (model.EventsByAuthKey, error) 
 	for _, key := range authKey {
 		var events model.Events
 
-		result := repo.db.Where("send = ?", 1).Where("authKey = ?", key).Find(&events.Events)
+		result := repo.db.Where("send = ?", 1).Where("authKey = ?", key).Limit(10000).Find(&events.Events)
 		if result.Error != nil {
 			slog.Error("fail with find events gorm:", slog.String("err", result.Error.Error()))
 			return model.EventsByAuthKey{}, result.Error
@@ -83,14 +83,21 @@ func (repo *CLIRepository) GetAuthKeys() ([]string, error) {
 	return keys, nil
 }
 
-func (repo *CLIRepository) Drop() error {
-	var events dto.Events
+func (repo *CLIRepository) Drop(events model.EventsByAuthKey) error {
+	delCounter := 0
 
-	result := repo.db.Where("send = ?", "1").Delete(&events.Events)
-	if result.Error != nil {
-		slog.Error("fail delete events gorm:", slog.String("err", result.Error.Error()))
-		return result.Error
+	for i := range events.Events {
+
+		result := repo.db.Delete(&events.Events[i].Events, "send = ?", "1")
+		if result.Error != nil {
+			slog.Error("fail delete events gorm:", slog.String("err", result.Error.Error()))
+			return result.Error
+		}
+
+		delCounter += len(events.Events[i].Events)
 	}
+
+	log.Printf("deleted %d events", delCounter)
 
 	slog.Info("deleting successful")
 

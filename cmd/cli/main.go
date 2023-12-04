@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	inputData string
-	httpAddr  string
-	authKey   string
-	version   string
+	inputData  string
+	httpAddr   string
+	authKey    string
+	authorized bool
+	version    string
 
 	rootCmd = &cobra.Command{
 		Use:   "cli",
@@ -63,7 +64,7 @@ var (
 			}
 
 			repo := repository.NewCLIRepository(db)
-			service := cliservice.NewCLIService(repo, httpAddr, authKey)
+			service := cliservice.NewCLIService(repo, httpAddr, authKey, authorized)
 
 			requestData, err := service.ReadRequestData(inputData)
 			if err != nil {
@@ -76,24 +77,29 @@ var (
 				return
 			}
 
-			if err = service.UpdateEvents(); err != nil {
-				return
-			}
-
-			keys, err := service.GetKeys()
-			if err != nil {
-				return
-			}
-
-			eventsToSend, err := service.GetEvents(keys)
-
-			for _, event := range eventsToSend.Events {
-				if err := service.Send(event); err != nil {
+			if authorized {
+				if err = service.UpdateEvents(); err != nil {
 					return
 				}
-			}
 
-			if err := service.Delete(); err != nil {
+				keys, err := service.GetKeys()
+				if err != nil {
+					return
+				}
+
+				eventsToSend, err := service.GetEvents(keys)
+
+				for _, event := range eventsToSend.Events {
+					if err := service.Send(event); err != nil {
+						return
+					}
+				}
+
+				if err := service.Delete(eventsToSend); err != nil {
+					return
+				}
+			} else {
+				slog.Warn("user not authorized")
 				return
 			}
 		},
@@ -104,6 +110,7 @@ func init() {
 	eventCmd.Flags().StringVarP(&inputData, "data", "d", "", "Request data in JSON format string")
 	eventCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key")
 	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
+	eventCmd.Flags().BoolVarP(&authorized, "authorized", "a", true, "Take info about authorization")
 
 	rootCmd.AddCommand(eventCmd, versionCmd)
 

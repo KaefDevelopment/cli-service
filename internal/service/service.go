@@ -7,13 +7,14 @@ import (
 )
 
 type CLIService struct {
-	repo     Repository
-	httpAddr string
-	authKey  string
+	repo       Repository
+	httpAddr   string
+	authKey    string
+	authorized bool
 }
 
-func NewCLIService(repo Repository, httpAddr, authKey string) *CLIService {
-	return &CLIService{repo: repo, httpAddr: httpAddr, authKey: authKey}
+func NewCLIService(repo Repository, httpAddr, authKey string, authorized bool) *CLIService {
+	return &CLIService{repo: repo, httpAddr: httpAddr, authKey: authKey, authorized: authorized}
 }
 
 type Repository interface {
@@ -21,5 +22,5 @@ type Repository interface {
 	Get(authKey []string) (model.EventsByAuthKey, error)
 	GetAuthKeys() ([]string, error)
 	Update() error
-	Drop() error
+	Drop(events model.EventsByAuthKey) error
 }
