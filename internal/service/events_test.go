@@ -163,25 +163,10 @@ func TestCLIService_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	events := model.EventsByAuthKey{Events: []model.Events{{Events: []model.Event{{
-		Id:             "123",
-		CreatedAt:      "1",
-		Type:           "1",
-		Project:        "1",
-		ProjectBaseDir: "1",
-		Language:       "golang",
-		Target:         "1",
-		Branch:         "master",
-		Timezone:       "1",
-		Params:         nil,
-		AuthKey:        "12345",
-		Send:           true,
-	}}}}}
-
 	repo := NewMockRepository(ctrl)
-	repo.EXPECT().Drop(events).Return(nil)
+	repo.EXPECT().Drop().Return(nil)
 
 	service := NewCLIService(repo, "", "12345", true)
-	err := service.Delete(events)
+	err := service.Delete()
 	assert.NoError(t, err)
 }

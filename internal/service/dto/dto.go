@@ -18,7 +18,3 @@ type Event struct {
 type Events struct {
 	Events []Event `json:"events"`
 }
-
-type Response struct {
-	Events []Event `json:"events"`
-}

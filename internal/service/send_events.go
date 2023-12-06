@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -13,8 +14,7 @@ import (
 )
 
 var (
-	errInternalServer = errors.New("internal server error")
-	errUnauthorized   = errors.New("unauthorized error")
+	errBadStatusCode = errors.New("bad status code")
 )
 
 func (s *CLIService) Send(events model.Events) error {
@@ -23,7 +23,7 @@ func (s *CLIService) Send(events model.Events) error {
 		return nil
 	}
 
-	var resEvent dto.Events
+	resEvent := dto.Events{Events: make([]dto.Event, 0, len(events.Events))}
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -65,14 +65,9 @@ func (s *CLIService) Send(events model.Events) error {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 500 {
-		slog.Error("fail status code:", slog.Any("status", resp.Status))
-		return errInternalServer
-	}
-
-	if resp.StatusCode == 401 {
-		slog.Error("fail status code:", slog.Any("status", resp.Status))
-		return errUnauthorized
+	if resp.StatusCode >= http.StatusBadRequest {
+		slog.Error("fail status code", slog.String("status", resp.Status))
+		return fmt.Errorf("%w: %s", errBadStatusCode, resp.Status)
 	}
 
 	log.Printf("%s sent %d events", events.Events[0].AuthKey, len(events.Events))

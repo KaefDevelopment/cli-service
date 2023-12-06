@@ -43,7 +43,7 @@ func TestCLIService_Send_Positive(t *testing.T) {
 	assert.NoError(t, actualErr)
 }
 
-func TestCLIService_Send_Error_500(t *testing.T) {
+func TestCLIService_Send_Error_BadStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -53,20 +53,7 @@ func TestCLIService_Send_Error_500(t *testing.T) {
 	service := CLIService{httpAddr: server.URL}
 
 	actualErr := service.Send(testEvents)
-	assert.ErrorIs(t, actualErr, errInternalServer)
-}
-
-func TestCLIService_Send_Error_401(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		writer.WriteHeader(http.StatusUnauthorized)
-	}))
-
-	defer server.Close()
-
-	service := CLIService{httpAddr: server.URL}
-	actualErr := service.Send(testEvents)
-
-	assert.ErrorIs(t, actualErr, errUnauthorized)
+	assert.ErrorIs(t, actualErr, errBadStatusCode)
 }
 
 func TestCLIService_Send_Error(t *testing.T) {
@@ -196,6 +183,6 @@ func TestCLIService_Send(t *testing.T) {
 	assert.NoError(t, err)
 
 	actualErr := service.Send(actualEvents.Events[0])
-	assert.ErrorIs(t, actualErr, errUnauthorized)
+	assert.ErrorIs(t, actualErr, errBadStatusCode)
 	assert.Equal(t, expectedEvents, actualEvents)
 }

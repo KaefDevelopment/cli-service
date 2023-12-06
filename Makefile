@@ -31,6 +31,10 @@ $(BUILD_DIR)/%.zip:
 send-event:
 	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
+.PHONY: send-empty
+send-empty:
+	go run ./cmd/cli/main.go event -d '{"events":[]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
 .PHONY: send-bad-event
 send-bad-event:
 	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"

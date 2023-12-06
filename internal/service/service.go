@@ -22,5 +22,5 @@ type Repository interface {
 	Get(authKey []string) (model.EventsByAuthKey, error)
 	GetAuthKeys() ([]string, error)
 	Update() error
-	Drop(events model.EventsByAuthKey) error
+	Drop() error
 }

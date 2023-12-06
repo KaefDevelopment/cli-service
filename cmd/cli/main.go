@@ -78,9 +78,6 @@ var (
 			}
 
 			if authorized {
-				if err = service.UpdateEvents(); err != nil {
-					return
-				}
 
 				keys, err := service.GetKeys()
 				if err != nil {
@@ -95,7 +92,11 @@ var (
 					}
 				}
 
-				if err := service.Delete(eventsToSend); err != nil {
+				if err = service.UpdateEvents(); err != nil {
+					return
+				}
+
+				if err := service.Delete(); err != nil {
 					return
 				}
 			} else {

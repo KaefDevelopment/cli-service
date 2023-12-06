@@ -42,6 +42,6 @@ func (s *CLIService) GetEvents(keys []string) (model.EventsByAuthKey, error) {
 	return events, nil
 }
 
-func (s *CLIService) Delete(events model.EventsByAuthKey) error {
-	return s.repo.Drop(events)
+func (s *CLIService) Delete() error {
+	return s.repo.Drop()
 }
