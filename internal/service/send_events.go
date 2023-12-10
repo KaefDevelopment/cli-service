@@ -5,25 +5,35 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/service/dto"
 	"log"
 	"log/slog"
 	"net/http"
-
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/service/dto"
+	"os"
+	"runtime"
 )
 
 var (
 	errBadStatusCode = errors.New("bad status code")
 )
 
-func (s *CLIService) Send(events model.Events) error {
+func (s *CLIService) Send(events model.Events, version, authKey string) error {
 	if len(events.Events) == 0 {
 		slog.Warn("empty events to send")
 		return nil
 	}
 
-	resEvent := dto.Events{Events: make([]dto.Event, 0, len(events.Events))}
+	osName := runtime.GOOS
+
+	deviceName, _ := os.Hostname()
+
+	resEvent := dto.SendEvents{
+		OsName:     osName,
+		DeviceName: deviceName,
+		CliVersion: version,
+		Events:     make([]dto.Event, 0, len(events.Events)),
+	}
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -55,7 +65,7 @@ func (s *CLIService) Send(events model.Events) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", events.Events[0].AuthKey)
+	req.Header.Set("Authorization", authKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

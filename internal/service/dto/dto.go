@@ -18,3 +18,10 @@ type Event struct {
 type Events struct {
 	Events []Event `json:"events"`
 }
+
+type SendEvents struct {
+	OsName     string  `json:"osName"`
+	DeviceName string  `json:"deviceName"`
+	CliVersion string  `json:"cliVersion"`
+	Events     []Event `json:"events"`
+}

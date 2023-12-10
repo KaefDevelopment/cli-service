@@ -14,7 +14,7 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 	if err := json.Unmarshal([]byte(request), &requestModel); err != nil {
 		slog.Error("read data unmarshal failed:", slog.String("json", request), slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrReadRequestDataUnmarshal)
-		return model.Events{}, err
+		return model.Events{}, fmt.Errorf("%w:%v", utils.ErrReadRequestDataUnmarshal, err)
 	}
 
 	for i := range requestModel.Events {

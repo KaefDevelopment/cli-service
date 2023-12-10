@@ -3,6 +3,7 @@ package service
 import (
 	"log/slog"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/google/uuid"
@@ -47,6 +48,14 @@ func GetUUID() string {
 	return uuid.New().String()
 }
 
+func GetOsName() string {
+	return runtime.GOOS
+}
+
+func GetDeviceName() (string, error) {
+	return os.Hostname()
+}
+
 func (s *CLIService) Aggregate(events model.Events) {
 	for i := range events.Events {
 		if events.Events[i].Branch != "" {
@@ -62,6 +71,5 @@ func (s *CLIService) Aggregate(events model.Events) {
 		} else if events.Events[i].Id == "" {
 			events.Events[i].Id = getIDFn()
 		}
-
 	}
 }

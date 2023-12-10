@@ -87,7 +87,7 @@ var (
 				eventsToSend, err := service.GetEvents(keys)
 
 				for _, event := range eventsToSend.Events {
-					if err := service.Send(event); err != nil {
+					if err := service.Send(event, version, authKey); err != nil {
 						return
 					}
 				}
