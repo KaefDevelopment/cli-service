@@ -16,10 +16,6 @@ type Event struct {
 	PluginId       string       `json:"pluginId" gorm:"column:pluginId"`
 }
 
-type Events struct {
-	Events []Event `json:"events"`
-}
-
 type SendEvents struct {
 	OsName     string  `json:"osName"`
 	DeviceName string  `json:"deviceName"`
