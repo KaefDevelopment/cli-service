@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/jaroslav1991/cli-service/internal/utils"
 	"gorm.io/gorm"
 	"log/slog"
@@ -24,11 +25,11 @@ const (
 )
 
 func CreateTable(db *gorm.DB) error {
-	tx := db.Exec(createTableQuery)
-	if tx.Error != nil {
-		slog.Error("create table failed:", slog.String("err", tx.Error.Error()))
+	err := db.Exec(createTableQuery).Error
+	if err != nil {
+		slog.Error("create table failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrCreateTable)
-		return tx.Error
+		return fmt.Errorf("%w: %v", utils.ErrCreateTable, err)
 	}
 
 	return nil

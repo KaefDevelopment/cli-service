@@ -47,6 +47,7 @@ func (s *CLIService) Send(events model.Events, version, authKey string) error {
 			Branch:         events.Events[i].Branch,
 			Timezone:       events.Events[i].Timezone,
 			Params:         events.Events[i].Params,
+			PluginId:       events.Events[i].AuthKey,
 		}
 
 		resEvent.Events = append(resEvent.Events, dtoEvent)
@@ -80,7 +81,7 @@ func (s *CLIService) Send(events model.Events, version, authKey string) error {
 		return fmt.Errorf("%w: %s", errBadStatusCode, resp.Status)
 	}
 
-	log.Printf("%s sent %d events", events.Events[0].AuthKey, len(events.Events))
+	log.Printf("%s sent %d events", s.authKey, len(events.Events))
 
 	return nil
 }

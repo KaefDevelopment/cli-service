@@ -80,36 +80,11 @@ func TestCLIService_UpdateEvents(t *testing.T) {
 
 }
 
-func TestCLIService_GetKeys_Positive(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	repo := NewMockRepository(ctrl)
-	repo.EXPECT().GetAuthKeys().Return([]string{"12345"}, nil)
-
-	service := NewCLIService(repo, "", "12345", true)
-	actual, err := service.GetKeys()
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"12345"}, actual)
-}
-
-func TestCLIService_GetKeys_Error(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	repo := NewMockRepository(ctrl)
-	repo.EXPECT().GetAuthKeys().Return(nil, utils.ErrAuthKey)
-
-	service := NewCLIService(repo, "", "", true)
-	_, err := service.GetKeys()
-	assert.ErrorIs(t, err, utils.ErrAuthKey)
-}
-
 func TestCLIService_GetEvents_Positive(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	eventsByAuthKey := model.EventsByAuthKey{Events: []model.Events{{Events: []model.Event{{
+	events := model.Events{Events: []model.Event{{
 		Id:             "123",
 		CreatedAt:      "1",
 		Type:           "1",
@@ -120,18 +95,18 @@ func TestCLIService_GetEvents_Positive(t *testing.T) {
 		Branch:         "master",
 		Timezone:       "1",
 		Params:         nil,
-		AuthKey:        "12345",
-		Send:           true,
-	}}}}}
+		AuthKey:        "",
+		Send:           false,
+	}}}
 
 	repo := NewMockRepository(ctrl)
-	repo.EXPECT().Get([]string{"12345"}).Return(eventsByAuthKey, nil)
+	repo.EXPECT().Get().Return(events, nil)
 
 	service := NewCLIService(repo, "", "12345", true)
-	actualEvents, err := service.GetEvents([]string{"12345"})
+	actualEvents, err := service.GetEvents()
 	assert.NoError(t, err)
 
-	assert.Equal(t, model.EventsByAuthKey{Events: []model.Events{{Events: []model.Event{{
+	assert.Equal(t, model.Events{Events: []model.Event{{
 		Id:             "123",
 		CreatedAt:      "1",
 		Type:           "1",
@@ -142,9 +117,9 @@ func TestCLIService_GetEvents_Positive(t *testing.T) {
 		Branch:         "master",
 		Timezone:       "1",
 		Params:         nil,
-		AuthKey:        "12345",
-		Send:           true,
-	}}}}}, actualEvents)
+		AuthKey:        "",
+		Send:           false,
+	}}}, actualEvents)
 }
 
 func TestCLIService_GetEvents_Error(t *testing.T) {
@@ -152,10 +127,10 @@ func TestCLIService_GetEvents_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := NewMockRepository(ctrl)
-	repo.EXPECT().Get([]string{}).Return(model.EventsByAuthKey{}, errors.New("some error"))
+	repo.EXPECT().Get().Return(model.Events{}, errors.New("some error"))
 
 	service := NewCLIService(repo, "", "", true)
-	_, err := service.GetEvents([]string{})
+	_, err := service.GetEvents()
 	assert.Error(t, err)
 }
 

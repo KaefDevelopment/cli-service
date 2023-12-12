@@ -78,18 +78,10 @@ var (
 			}
 
 			if authorized {
+				eventsToSend, err := service.GetEvents()
 
-				keys, err := service.GetKeys()
-				if err != nil {
+				if err := service.Send(eventsToSend, version, authKey); err != nil {
 					return
-				}
-
-				eventsToSend, err := service.GetEvents(keys)
-
-				for _, event := range eventsToSend.Events {
-					if err := service.Send(event, version, authKey); err != nil {
-						return
-					}
 				}
 
 				if err = service.UpdateEvents(); err != nil {

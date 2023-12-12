@@ -24,19 +24,10 @@ func (s *CLIService) UpdateEvents() error {
 	return s.repo.Update()
 }
 
-func (s *CLIService) GetKeys() ([]string, error) {
-	keys, err := s.repo.GetAuthKeys()
+func (s *CLIService) GetEvents() (model.Events, error) {
+	events, err := s.repo.Get()
 	if err != nil {
-		return nil, err
-	}
-
-	return keys, nil
-}
-
-func (s *CLIService) GetEvents(keys []string) (model.EventsByAuthKey, error) {
-	events, err := s.repo.Get(keys)
-	if err != nil {
-		return model.EventsByAuthKey{}, err
+		return model.Events{}, err
 	}
 
 	return events, nil

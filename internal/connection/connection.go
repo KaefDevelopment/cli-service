@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"fmt"
 	"github.com/jaroslav1991/cli-service/internal/utils"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -23,7 +24,7 @@ func OpenDB() (*gorm.DB, error) {
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", utils.ErrConnectDB, err)
 	}
 
 	return db, nil

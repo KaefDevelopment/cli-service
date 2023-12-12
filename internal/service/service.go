@@ -19,8 +19,7 @@ func NewCLIService(repo Repository, httpAddr, authKey string, authorized bool) *
 
 type Repository interface {
 	Create(events model.Events) error
-	Get(authKey []string) (model.EventsByAuthKey, error)
-	GetAuthKeys() ([]string, error)
+	Get() (model.Events, error)
 	Update() error
 	Drop() error
 }

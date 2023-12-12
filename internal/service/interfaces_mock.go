@@ -63,33 +63,18 @@ func (mr *MockRepositoryMockRecorder) Drop() *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(authKey []string) (model.EventsByAuthKey, error) {
+func (m *MockRepository) Get() (model.Events, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", authKey)
-	ret0, _ := ret[0].(model.EventsByAuthKey)
+	ret := m.ctrl.Call(m, "Get")
+	ret0, _ := ret[0].(model.Events)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(authKey interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), authKey)
-}
-
-// GetAuthKeys mocks base method.
-func (m *MockRepository) GetAuthKeys() ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAuthKeys")
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAuthKeys indicates an expected call of GetAuthKeys.
-func (mr *MockRepositoryMockRecorder) GetAuthKeys() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthKeys", reflect.TypeOf((*MockRepository)(nil).GetAuthKeys))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get))
 }
 
 // Update mocks base method.

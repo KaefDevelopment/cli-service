@@ -35,51 +35,16 @@ func (repo *CLIRepository) Update() error {
 	return nil
 }
 
-func (repo *CLIRepository) Get(authKey []string) (model.EventsByAuthKey, error) {
-	var res model.EventsByAuthKey
+func (repo *CLIRepository) Get() (model.Events, error) {
+	var events model.Events
 
-	for _, key := range authKey {
-		var events model.Events
-
-		result := repo.db.Where("authKey = ?", key).Limit(10000).Find(&events.Events)
-		if result.Error != nil {
-			slog.Error("fail with find events gorm:", slog.String("err", result.Error.Error()))
-			return model.EventsByAuthKey{}, result.Error
-		}
-
-		res.Events = append(res.Events, events)
-	}
-
-	return res, nil
-}
-
-func (repo *CLIRepository) GetAuthKeys() ([]string, error) {
-	result := repo.db.Table("events")
-
-	result = result.Raw("select distinct authKey from events")
-
-	rows, err := result.Rows()
+	err := repo.db.Find(&events.Events).Limit(10000).Error
 	if err != nil {
-		slog.Error("fail with rows gorm:", slog.String("err", err.Error()))
-		return nil, err
+		slog.Error("fail with find events gorm:", slog.String("err", err.Error()))
+		return model.Events{}, err
 	}
 
-	defer rows.Close()
-
-	var keys []string
-
-	for rows.Next() {
-		var authKey model.Event
-
-		if err := rows.Scan(&authKey.AuthKey); err != nil {
-			slog.Error("fail rows scan gorm:", slog.String("err", err.Error()))
-			return nil, err
-		}
-
-		keys = append(keys, authKey.AuthKey)
-	}
-
-	return keys, nil
+	return events, nil
 }
 
 func (repo *CLIRepository) Drop() error {
@@ -88,17 +53,6 @@ func (repo *CLIRepository) Drop() error {
 		slog.Error("fail delete events gorm:", slog.String("err", err.Error()))
 		return err
 	}
-
-	//for i := range events.Events {
-	//
-	//	result := repo.db.Delete(&events.Events[i].Events, "send = ?", "1")
-	//	if result.Error != nil {
-	//		slog.Error("fail delete events gorm:", slog.String("err", result.Error.Error()))
-	//		return result.Error
-	//	}
-	//
-	//	delCounter += len(events.Events[i].Events)
-	//}
 
 	slog.Info("deleting successful")
 
