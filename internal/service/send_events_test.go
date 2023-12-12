@@ -135,34 +135,6 @@ func TestCLIService_Send(t *testing.T) {
 		Send:           true,
 	}}}
 
-	//events := model.Events{Events: []model.Event{{
-	//	Id:             "qwerty12345",
-	//	CreatedAt:      "1",
-	//	Type:           "1",
-	//	Project:        "1",
-	//	ProjectBaseDir: "/mnt/c/Users/jaros/GolandProjects/tts",
-	//	Language:       "golang",
-	//	Target:         "1",
-	//	Branch:         "new_contract_v1",
-	//	Timezone:       "1",
-	//	Params:         model.Params{"count": "12"},
-	//	AuthKey:        "12345",
-	//	Send:           true,
-	//}, {
-	//	Id:             "qwerty123456",
-	//	CreatedAt:      "2",
-	//	Type:           "2",
-	//	Project:        "2",
-	//	ProjectBaseDir: "/mnt/c/Users/jaros/GolandProjects/tts",
-	//	Language:       "golang",
-	//	Target:         "2",
-	//	Branch:         "new_contract_v1",
-	//	Timezone:       "2",
-	//	Params:         model.Params{"count": "13"},
-	//	AuthKey:        "12345",
-	//	Send:           true,
-	//}}}
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
