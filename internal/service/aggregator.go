@@ -49,17 +49,13 @@ func GetUUID() string {
 
 func (s *CLIService) Aggregate(events model.Events) {
 	for i := range events.Events {
-		if events.Events[i].Branch != "" {
-			continue
+		if events.Events[i].Branch == "" {
+			if eventBranch := getBranchFn(events.Events[i].ProjectBaseDir); eventBranch != "" {
+				events.Events[i].Branch = eventBranch
+			}
 		}
 
-		if eventBranch := getBranchFn(events.Events[i].ProjectBaseDir); eventBranch != "" {
-			events.Events[i].Branch = eventBranch
-		}
-
-		if events.Events[i].Id != "" {
-			continue
-		} else if events.Events[i].Id == "" {
+		if events.Events[i].Id == "" {
 			events.Events[i].Id = getIDFn()
 		}
 	}

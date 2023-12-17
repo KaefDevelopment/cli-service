@@ -1,9 +1,10 @@
 package service
 
 import (
+	"log"
+
 	"github.com/jaroslav1991/cli-service/internal/model"
 	"github.com/jaroslav1991/cli-service/internal/utils"
-	"log"
 )
 
 func (s *CLIService) CreateEvents(events model.Events) error {
@@ -13,26 +14,7 @@ func (s *CLIService) CreateEvents(events model.Events) error {
 	}
 
 	log.Printf("save %d events", len(events.Events))
-	utils.WriteSuccessResponse(utils.ResponseForPlugin{
-		Status: true,
-	})
+	utils.WriteSuccessResponse()
 
 	return nil
-}
-
-func (s *CLIService) UpdateEvents() error {
-	return s.repo.Update()
-}
-
-func (s *CLIService) GetEvents() (model.Events, error) {
-	events, err := s.repo.Get()
-	if err != nil {
-		return model.Events{}, err
-	}
-
-	return events, nil
-}
-
-func (s *CLIService) Delete() error {
-	return s.repo.Drop()
 }

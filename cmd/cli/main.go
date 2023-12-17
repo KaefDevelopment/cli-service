@@ -3,15 +3,17 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/connection"
-	"github.com/jaroslav1991/cli-service/internal/model"
-	cliservice "github.com/jaroslav1991/cli-service/internal/service"
-	"github.com/jaroslav1991/cli-service/internal/service/repository"
-	"github.com/spf13/cobra"
 	"log"
 	"log/slog"
 	"os"
 	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/jaroslav1991/cli-service/internal/connection"
+	"github.com/jaroslav1991/cli-service/internal/model"
+	cliservice "github.com/jaroslav1991/cli-service/internal/service"
+	"github.com/jaroslav1991/cli-service/internal/service/repository"
 )
 
 var (
@@ -29,7 +31,7 @@ var (
 
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Get cli version",
+		Short: "GetMarked cli version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(version)
 		},
@@ -59,12 +61,13 @@ var (
 				return
 			}
 
-			if err := model.CreateTable(db); err != nil {
+			if err := model.InitSchema(db); err != nil {
 				return
 			}
 
 			repo := repository.NewCLIRepository(db)
-			service := cliservice.NewCLIService(repo, httpAddr, authKey, authorized)
+			txp := repository.NewTxProvider(db)
+			service := cliservice.NewCLIService(repo, txp, httpAddr, authKey)
 
 			requestData, err := service.ReadRequestData(inputData)
 			if err != nil {
@@ -78,21 +81,11 @@ var (
 			}
 
 			if authorized {
-				eventsToSend, err := service.GetEvents()
-
-				if err := service.Send(eventsToSend, version, authKey); err != nil {
-					return
-				}
-
-				if err = service.UpdateEvents(); err != nil {
-					return
-				}
-
-				if err := service.Delete(); err != nil {
-					return
+				if err := service.Send(version); err != nil {
+					slog.Error("failed to send events", slog.String("err", err.Error()))
 				}
 			} else {
-				slog.Warn("user not authorized")
+				slog.Warn("plugin is not authorized", slog.String("pluginId", authKey))
 				return
 			}
 		},

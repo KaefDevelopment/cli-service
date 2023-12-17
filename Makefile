@@ -51,6 +51,10 @@ version:
 start-mock:
 	go run ./cmd/mock/main.go
 
+.PHONY: test
+test:
+	@go test ./... -race -v
 
-
-
+.PHONY: generate
+generate:
+	go generate ./...
