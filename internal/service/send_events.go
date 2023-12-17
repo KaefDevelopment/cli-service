@@ -50,7 +50,7 @@ func (s *CLIService) Send(version string) error {
 
 func (s *CLIService) sendEvents(events model.Events, version string) error {
 	if len(events.Events) == 0 {
-		slog.Warn("empty events to sendEvents")
+		slog.Warn("empty events")
 		return nil
 	}
 
@@ -94,7 +94,7 @@ func (s *CLIService) sendEvents(events model.Events, version string) error {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.httpAddr, bytes.NewBuffer(bytesEventsSend))
 	if err != nil {
-		slog.Error("fail to sendEvents events:", slog.String("err", err.Error()))
+		slog.Error("failed to send events:", slog.String("err", err.Error()))
 		return err
 	}
 
