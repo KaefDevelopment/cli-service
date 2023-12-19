@@ -13,8 +13,12 @@ type Event struct {
 	Branch         string       `json:"branch,omitempty" gorm:"column:branch"`
 	Timezone       string       `json:"timezone,omitempty" gorm:"column:timezone"`
 	Params         model.Params `json:"params,omitempty" gorm:"column:params"`
+	PluginId       string       `json:"pluginId" gorm:"column:pluginId"`
 }
 
-type Events struct {
-	Events []Event `json:"events"`
+type SendEvents struct {
+	OsName     string  `json:"osName"`
+	DeviceName string  `json:"deviceName"`
+	CliVersion string  `json:"cliVersion"`
+	Events     []Event `json:"events"`
 }

@@ -48,60 +48,96 @@ func (mr *MockRepositoryMockRecorder) Create(events interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), events)
 }
 
-// Drop mocks base method.
-func (m *MockRepository) Drop() error {
+// Delete mocks base method.
+func (m *MockRepository) Delete(events model.Events) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Drop")
+	ret := m.ctrl.Call(m, "Delete", events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Drop indicates an expected call of Drop.
-func (mr *MockRepositoryMockRecorder) Drop() *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockRepositoryMockRecorder) Delete(events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drop", reflect.TypeOf((*MockRepository)(nil).Drop))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), events)
 }
 
-// Get mocks base method.
-func (m *MockRepository) Get(authKey []string) (model.EventsByAuthKey, error) {
+// GetMarked mocks base method.
+func (m *MockRepository) GetMarked() (model.Events, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", authKey)
-	ret0, _ := ret[0].(model.EventsByAuthKey)
+	ret := m.ctrl.Call(m, "GetMarked")
+	ret0, _ := ret[0].(model.Events)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(authKey interface{}) *gomock.Call {
+// GetMarked indicates an expected call of GetMarked.
+func (mr *MockRepositoryMockRecorder) GetMarked() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), authKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarked", reflect.TypeOf((*MockRepository)(nil).GetMarked))
 }
 
-// GetAuthKeys mocks base method.
-func (m *MockRepository) GetAuthKeys() ([]string, error) {
+// MarkSent mocks base method.
+func (m *MockRepository) MarkSent() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAuthKeys")
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAuthKeys indicates an expected call of GetAuthKeys.
-func (mr *MockRepositoryMockRecorder) GetAuthKeys() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthKeys", reflect.TypeOf((*MockRepository)(nil).GetAuthKeys))
-}
-
-// Update mocks base method.
-func (m *MockRepository) Update() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update")
+	ret := m.ctrl.Call(m, "MarkSent")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Update indicates an expected call of Update.
-func (mr *MockRepositoryMockRecorder) Update() *gomock.Call {
+// MarkSent indicates an expected call of MarkSent.
+func (mr *MockRepositoryMockRecorder) MarkSent() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkSent", reflect.TypeOf((*MockRepository)(nil).MarkSent))
+}
+
+// WithTx mocks base method.
+func (m *MockRepository) WithTx(txProvider TxProvider) Repository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithTx", txProvider)
+	ret0, _ := ret[0].(Repository)
+	return ret0
+}
+
+// WithTx indicates an expected call of WithTx.
+func (mr *MockRepositoryMockRecorder) WithTx(txProvider interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockRepository)(nil).WithTx), txProvider)
+}
+
+// MockTxProvider is a mock of TxProvider interface.
+type MockTxProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockTxProviderMockRecorder
+}
+
+// MockTxProviderMockRecorder is the mock recorder for MockTxProvider.
+type MockTxProviderMockRecorder struct {
+	mock *MockTxProvider
+}
+
+// NewMockTxProvider creates a new mock instance.
+func NewMockTxProvider(ctrl *gomock.Controller) *MockTxProvider {
+	mock := &MockTxProvider{ctrl: ctrl}
+	mock.recorder = &MockTxProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTxProvider) EXPECT() *MockTxProviderMockRecorder {
+	return m.recorder
+}
+
+// Transaction mocks base method.
+func (m *MockTxProvider) Transaction(f func(TxProvider) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Transaction", f)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Transaction indicates an expected call of Transaction.
+func (mr *MockTxProviderMockRecorder) Transaction(f interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockTxProvider)(nil).Transaction), f)
 }

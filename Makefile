@@ -29,7 +29,7 @@ $(BUILD_DIR)/%.zip:
 
 .PHONY: send-event
 send-event:
-	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 .PHONY: send-empty
 send-empty:
@@ -41,7 +41,7 @@ send-bad-event:
 
 .PHONY: send-not-authorized
 send-not-authorized:
-	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events" -a=false
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events" -a=false
 
 .PHONY: version
 version:
@@ -51,6 +51,10 @@ version:
 start-mock:
 	go run ./cmd/mock/main.go
 
+.PHONY: test
+test:
+	@go test ./... -race -v
 
-
-
+.PHONY: generate
+generate:
+	go generate ./...
