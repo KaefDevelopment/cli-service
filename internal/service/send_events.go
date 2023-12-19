@@ -2,25 +2,55 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/service/dto"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"runtime"
+	"time"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/service/dto"
 )
 
 var (
 	errBadStatusCode = errors.New("bad status code")
 )
 
-func (s *CLIService) Send(events model.Events, version, authKey string) error {
+func (s *CLIService) Send(version string) error {
+	err := s.txp.Transaction(func(txp TxProvider) error {
+		r := s.repo.WithTx(txp)
+
+		events, err := s.lockEvents(r)
+		if err != nil {
+			return fmt.Errorf("failed to lock events: %w", err)
+		}
+
+		if err := s.sendEvents(events, version); err != nil {
+			return fmt.Errorf("failed to sendEvents events: %w", err)
+		}
+
+		if err := s.unlockEvents(r, events); err != nil {
+			return fmt.Errorf("failed to unlock events: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		slog.Error("transaction failed", slog.String("err", err.Error()))
+		return err
+	}
+	return nil
+}
+
+func (s *CLIService) sendEvents(events model.Events, version string) error {
 	if len(events.Events) == 0 {
-		slog.Warn("empty events to send")
+		slog.Warn("empty events")
 		return nil
 	}
 
@@ -59,14 +89,17 @@ func (s *CLIService) Send(events model.Events, version, authKey string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", s.httpAddr, bytes.NewBuffer(bytesEventsSend))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.httpAddr, bytes.NewBuffer(bytesEventsSend))
 	if err != nil {
-		slog.Error("fail to send events:", slog.String("err", err.Error()))
+		slog.Error("failed to send events:", slog.String("err", err.Error()))
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", authKey)
+	req.Header.Set("Authorization", s.authKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -83,5 +116,24 @@ func (s *CLIService) Send(events model.Events, version, authKey string) error {
 
 	log.Printf("%s sent %d events", s.authKey, len(events.Events))
 
+	return nil
+}
+
+func (s *CLIService) lockEvents(repo Repository) (model.Events, error) {
+	if err := repo.MarkSent(); err != nil {
+		return model.Events{}, fmt.Errorf("failed to mark events: %w", err)
+	}
+
+	events, err := repo.GetMarked()
+	if err != nil {
+		return model.Events{}, fmt.Errorf("failed to get marked events: %w", err)
+	}
+	return events, nil
+}
+
+func (s *CLIService) unlockEvents(repo Repository, events model.Events) error {
+	if err := repo.Delete(events); err != nil {
+		return fmt.Errorf("failed to delete events: %w", err)
+	}
 	return nil
 }

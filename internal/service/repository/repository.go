@@ -6,7 +6,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/jaroslav1991/cli-service/internal/service"
 )
+
+const defaultLimit = 10000
 
 type CLIRepository struct {
 	db *gorm.DB
@@ -26,8 +29,13 @@ func (repo *CLIRepository) Create(events model.Events) error {
 	return nil
 }
 
-func (repo *CLIRepository) Update() error {
-	err := repo.db.Table("events").Where("send = ?", 0).Limit(10000).Updates(map[string]interface{}{"send": 1}).Error
+func (repo *CLIRepository) MarkSent() error {
+	err := repo.db.Table("events").
+		Where("send = ?", 0).
+		Order("createdAt asc").
+		Limit(defaultLimit).
+		Updates(map[string]interface{}{"send": 1}).
+		Error
 	if err != nil {
 		slog.Error("fail with update gorm column:", slog.String("err", err.Error()))
 	}
@@ -35,10 +43,13 @@ func (repo *CLIRepository) Update() error {
 	return nil
 }
 
-func (repo *CLIRepository) Get() (model.Events, error) {
+func (repo *CLIRepository) GetMarked() (model.Events, error) {
 	var events model.Events
-
-	err := repo.db.Find(&events.Events).Limit(10000).Error
+	err := repo.db.
+		Where("send = 1").
+		Find(&events.Events).
+		Limit(defaultLimit).
+		Error
 	if err != nil {
 		slog.Error("fail with find events gorm:", slog.String("err", err.Error()))
 		return model.Events{}, err
@@ -47,8 +58,8 @@ func (repo *CLIRepository) Get() (model.Events, error) {
 	return events, nil
 }
 
-func (repo *CLIRepository) Drop() error {
-	err := repo.db.Delete(model.Event{}, "send =?", 1).Error
+func (repo *CLIRepository) Delete(events model.Events) error {
+	err := repo.db.Delete(events.Events).Error
 	if err != nil {
 		slog.Error("fail delete events gorm:", slog.String("err", err.Error()))
 		return err
@@ -57,4 +68,8 @@ func (repo *CLIRepository) Drop() error {
 	slog.Info("deleting successful")
 
 	return nil
+}
+
+func (repo *CLIRepository) WithTx(txProvider service.TxProvider) service.Repository {
+	return NewCLIRepository(txProvider.(*TxProvider).getTx())
 }
