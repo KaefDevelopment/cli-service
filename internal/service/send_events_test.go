@@ -1,12 +1,17 @@
 package service
 
 import (
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
 )
 
 var (
@@ -24,12 +29,14 @@ var (
 		AuthKey:        "12345",
 		Send:           false,
 	}}}
-
-	version = "1.0.0"
 )
 
 func TestCLIService_Send_Positive(t *testing.T) {
-	requestData := `{"events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"}}]}`
+	hn, err := os.Hostname()
+	assert.NoError(t, err)
+
+	requestData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"},"pluginId":"12345"}]}`, runtime.GOOS, hn)
+
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := io.ReadAll(request.Body)
 		assert.NoError(t, err)
@@ -40,11 +47,11 @@ func TestCLIService_Send_Positive(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.Send(testEvents)
+	actualErr := service.sendEvents(testEvents, "1.0.1")
 	assert.NoError(t, actualErr)
 }
 
-func TestCLIService_Send_Error_500(t *testing.T) {
+func TestCLIService_Send_Error_BadStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -53,14 +60,14 @@ func TestCLIService_Send_Error_500(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.Send(testEvents)
-	assert.ErrorIs(t, actualErr, errInternalServer)
+	actualErr := service.sendEvents(testEvents, "1.0.1")
+	assert.ErrorIs(t, actualErr, errBadStatusCode)
 }
 
 func TestCLIService_Send_Error(t *testing.T) {
 	service := CLIService{}
 
-	actualErr := service.Send(testEvents)
+	actualErr := service.sendEvents(testEvents, "1.0.1")
 	assert.Error(t, actualErr)
 }
 
@@ -69,6 +76,6 @@ func TestCLIService_Send_Empty(t *testing.T) {
 
 	service := CLIService{}
 
-	actualErr := service.Send(actualData)
+	actualErr := service.sendEvents(actualData, "1.0.1")
 	assert.NoError(t, actualErr)
 }

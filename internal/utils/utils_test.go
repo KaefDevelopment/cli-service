@@ -26,6 +26,10 @@ func TestWriteErrorResponse1(t *testing.T) {
 			args: args{err: ErrConnectDB},
 		},
 		{
+			name: "create table error",
+			args: args{err: ErrCreateTable},
+		},
+		{
 			name: "read request error",
 			args: args{err: ErrReadRequestDataUnmarshal},
 		},

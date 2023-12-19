@@ -3,22 +3,25 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/connection"
-	"github.com/jaroslav1991/cli-service/internal/model"
-	cliservice "github.com/jaroslav1991/cli-service/internal/service"
-	"github.com/jaroslav1991/cli-service/internal/service/repository"
-	"github.com/spf13/cobra"
 	"log"
 	"log/slog"
 	"os"
 	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/jaroslav1991/cli-service/internal/connection"
+	"github.com/jaroslav1991/cli-service/internal/model"
+	cliservice "github.com/jaroslav1991/cli-service/internal/service"
+	"github.com/jaroslav1991/cli-service/internal/service/repository"
 )
 
 var (
-	inputData string
-	httpAddr  string
-	authKey   string
-	version   string
+	inputData  string
+	httpAddr   string
+	authKey    string
+	authorized bool
+	version    string
 
 	rootCmd = &cobra.Command{
 		Use:   "cli",
@@ -28,7 +31,7 @@ var (
 
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Get cli version",
+		Short: "GetMarked cli version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(version)
 		},
@@ -58,12 +61,13 @@ var (
 				return
 			}
 
-			if err := model.CreateTable(db); err != nil {
+			if err := model.InitSchema(db); err != nil {
 				return
 			}
 
 			repo := repository.NewCLIRepository(db)
-			service := cliservice.NewCLIService(repo, httpAddr, authKey)
+			txp := repository.NewTxProvider(db)
+			service := cliservice.NewCLIService(repo, txp, httpAddr, authKey)
 
 			requestData, err := service.ReadRequestData(inputData)
 			if err != nil {
@@ -76,24 +80,12 @@ var (
 				return
 			}
 
-			if err = service.UpdateEvents(); err != nil {
-				return
-			}
-
-			keys, err := service.GetKeys()
-			if err != nil {
-				return
-			}
-
-			eventsToSend, err := service.GetEvents(keys)
-
-			for _, event := range eventsToSend.Events {
-				if err := service.Send(event); err != nil {
-					return
+			if authorized {
+				if err := service.Send(version); err != nil {
+					slog.Error("failed to send events", slog.String("err", err.Error()))
 				}
-			}
-
-			if err := service.Delete(); err != nil {
+			} else {
+				slog.Warn("plugin is not authorized", slog.String("pluginId", authKey))
 				return
 			}
 		},
@@ -104,6 +96,7 @@ func init() {
 	eventCmd.Flags().StringVarP(&inputData, "data", "d", "", "Request data in JSON format string")
 	eventCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key")
 	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
+	eventCmd.Flags().BoolVarP(&authorized, "authorized", "a", true, "Take info about authorization")
 
 	rootCmd.AddCommand(eventCmd, versionCmd)
 

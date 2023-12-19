@@ -1,12 +1,12 @@
 package service
 
 import (
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/stretchr/testify/assert"
 	"testing"
-)
 
-// C:\Users\jaros\GolandProjects\tts
+	"github.com/stretchr/testify/assert"
+
+	"github.com/jaroslav1991/cli-service/internal/model"
+)
 
 func TestCLIService_Aggregate_BranchNotFound(t *testing.T) {
 	service := CLIService{authKey: "12345"}
@@ -75,6 +75,10 @@ func TestCLIService_Aggregate_FindBranchInGit(t *testing.T) {
 		Branch:         "",
 	}}}
 
+	getBranchFn = func(_ string) string {
+		return "new_contract_v1"
+	}
+
 	expected := model.Events{Events: []model.Event{{
 		Id:             "123",
 		ProjectBaseDir: "C:/Users/jaros/GolandProjects/tts",
@@ -104,6 +108,8 @@ func TestCLIService_Aggregate_BranchNotEmpty(t *testing.T) {
 
 func TestCLIService_Aggregate_ProjectBaseDir_Empty(t *testing.T) {
 	service := CLIService{authKey: "12345"}
+
+	getBranchFn, getIDFn = func(_ string) string { return "" }, func() string { return "" }
 
 	events := model.Events{Events: []model.Event{{
 		Id:             "123",
