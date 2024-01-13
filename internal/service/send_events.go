@@ -21,24 +21,26 @@ var (
 	errBadStatusCode = errors.New("bad status code")
 )
 
+func (s *CLIService) sendWithLock(r Repository, version string) error {
+	events, err := s.lockEvents(r)
+	if err != nil {
+		return fmt.Errorf("failed to lock events: %w", err)
+	}
+
+	if err := s.sendEvents(events, version); err != nil {
+		return fmt.Errorf("failed to sendEvents events: %w", err)
+	}
+
+	if err := s.unlockEvents(r, events); err != nil {
+		return fmt.Errorf("failed to unlock events: %w", err)
+	}
+
+	return nil
+}
+
 func (s *CLIService) Send(version string) error {
 	err := s.txp.Transaction(func(txp TxProvider) error {
-		r := s.repo.WithTx(txp)
-
-		events, err := s.lockEvents(r)
-		if err != nil {
-			return fmt.Errorf("failed to lock events: %w", err)
-		}
-
-		if err := s.sendEvents(events, version); err != nil {
-			return fmt.Errorf("failed to sendEvents events: %w", err)
-		}
-
-		if err := s.unlockEvents(r, events); err != nil {
-			return fmt.Errorf("failed to unlock events: %w", err)
-		}
-
-		return nil
+		return s.sendWithLock(s.repo.WithTx(txp), version)
 	})
 
 	if err != nil {
