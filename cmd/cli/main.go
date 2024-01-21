@@ -82,7 +82,7 @@ var (
 
 			slog.Info("start cli...")
 
-			db, err := connection.OpenDB()
+			db, err := connection.OpenDB(newConfigPath)
 			if err != nil {
 				return
 			}
