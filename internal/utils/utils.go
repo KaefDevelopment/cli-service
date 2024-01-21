@@ -2,7 +2,10 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"os"
 )
 
 type ResponseForPlugin struct {
@@ -31,4 +34,22 @@ func WriteResponse(response ResponseForPlugin) {
 	}
 
 	fmt.Println(string(dataBytes))
+}
+
+func MigrateToNewConfigPath(newConfigPath, oldConfigPath string) error {
+	if err := os.Mkdir(newConfigPath, os.ModePerm); err != nil && !errors.Is(err, os.ErrExist) {
+		log.Println(err)
+		return fmt.Errorf("create new config path: %w", err)
+	}
+
+	if err := MakeHiddenConfigFolder(newConfigPath); err != nil {
+		return fmt.Errorf("make hidden new config folder: %w", err)
+	}
+
+	if err := os.RemoveAll(oldConfigPath); err != nil && !errors.Is(err, os.ErrExist) {
+		log.Println(err)
+		return fmt.Errorf("delete old config path: %w", err)
+	}
+
+	return nil
 }

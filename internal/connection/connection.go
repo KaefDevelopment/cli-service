@@ -20,7 +20,7 @@ func OpenDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + "nau" + string(os.PathSeparator) + "cli.db"))
+	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + ".nau" + string(os.PathSeparator) + "cli.db"))
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)
