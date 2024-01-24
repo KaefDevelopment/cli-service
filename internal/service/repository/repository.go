@@ -1,12 +1,11 @@
 package repository
 
 import (
+	"gorm.io/gorm"
 	"log/slog"
 
-	"gorm.io/gorm"
-
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/service"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/service"
 )
 
 const defaultLimit = 10000

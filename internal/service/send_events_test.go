@@ -9,9 +9,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/KaefDevelopment/cli-service/internal/model"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/stretchr/testify/assert"
 )
 
 var (

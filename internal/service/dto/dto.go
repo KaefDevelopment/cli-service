@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/jaroslav1991/cli-service/internal/model"
+import "github.com/KaefDevelopment/cli-service/internal/model"
 
 type Event struct {
 	Id             string       `json:"id" gorm:"column:id"`

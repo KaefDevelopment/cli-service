@@ -13,8 +13,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/service/dto"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/service/dto"
 )
 
 var (

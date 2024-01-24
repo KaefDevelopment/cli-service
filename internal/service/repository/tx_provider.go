@@ -3,7 +3,7 @@ package repository
 import (
 	"gorm.io/gorm"
 
-	"github.com/jaroslav1991/cli-service/internal/service"
+	"github.com/KaefDevelopment/cli-service/internal/service"
 )
 
 type TxProvider struct {

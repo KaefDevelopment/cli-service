@@ -7,8 +7,8 @@ package service
 import (
 	reflect "reflect"
 
+	model "github.com/KaefDevelopment/cli-service/internal/model"
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/jaroslav1991/cli-service/internal/model"
 )
 
 // MockRepository is a mock of Repository interface.

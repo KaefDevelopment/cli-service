@@ -2,7 +2,7 @@ package connection
 
 import (
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/utils"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"

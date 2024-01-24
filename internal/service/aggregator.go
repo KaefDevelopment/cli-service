@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/KaefDevelopment/cli-service/internal/model"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/google/uuid"
 )
 
 var (

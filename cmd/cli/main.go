@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/utils"
 	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
-	"github.com/spf13/cobra"
+	"github.com/KaefDevelopment/cli-service/internal/connection"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	cliservice "github.com/KaefDevelopment/cli-service/internal/service"
+	"github.com/KaefDevelopment/cli-service/internal/service/repository"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 
-	"github.com/jaroslav1991/cli-service/internal/connection"
-	"github.com/jaroslav1991/cli-service/internal/model"
-	cliservice "github.com/jaroslav1991/cli-service/internal/service"
-	"github.com/jaroslav1991/cli-service/internal/service/repository"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -69,7 +70,7 @@ var (
 			}
 
 			fileInfo, err := os.OpenFile(
-				newConfigPath+string(os.PathSeparator)+fmt.Sprintf("cli-logger-%s.txt", authKey),
+				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey)),
 				os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
 			)
 			if err != nil {
