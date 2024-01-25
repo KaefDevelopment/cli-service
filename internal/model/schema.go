@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/jaroslav1991/cli-service/internal/utils"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 const (

@@ -3,8 +3,8 @@ package service
 import (
 	"log"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/utils"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func (s *CLIService) CreateEvents(events model.Events) error {

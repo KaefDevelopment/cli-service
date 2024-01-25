@@ -2,7 +2,7 @@ package connection
 
 import (
 	"fmt"
-	"github.com/jaroslav1991/cli-service/internal/utils"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
@@ -13,14 +13,8 @@ import (
 	"os"
 )
 
-func OpenDB() (*gorm.DB, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		slog.Error("fail with home directory:", slog.String("err", err.Error()))
-		return nil, err
-	}
-
-	db, err := gorm.Open(sqlite.Open(homeDir + string(os.PathSeparator) + "nau" + string(os.PathSeparator) + "cli.db"))
+func OpenDB(newConfigPath string) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db"))
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)

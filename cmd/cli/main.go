@@ -1,19 +1,20 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
-	"github.com/spf13/cobra"
+	"github.com/KaefDevelopment/cli-service/internal/connection"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	cliservice "github.com/KaefDevelopment/cli-service/internal/service"
+	"github.com/KaefDevelopment/cli-service/internal/service/repository"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 
-	"github.com/jaroslav1991/cli-service/internal/connection"
-	"github.com/jaroslav1991/cli-service/internal/model"
-	cliservice "github.com/jaroslav1991/cli-service/internal/service"
-	"github.com/jaroslav1991/cli-service/internal/service/repository"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -42,7 +43,6 @@ var (
 		Short: "Event data in JSON format string",
 		Long:  "using with event flag",
 		Run: func(cmd *cobra.Command, args []string) {
-			slog.Info("start cli...")
 
 			now := time.Now()
 
@@ -56,7 +56,34 @@ var (
 				log.Println("ending cli")
 			}()
 
-			db, err := connection.OpenDB()
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			newConfigPath := homeDir + string(os.PathSeparator) + ".nau"
+			oldConfigPath := homeDir + string(os.PathSeparator) + "nau"
+
+			if err := utils.MigrateToNewConfigPath(newConfigPath, oldConfigPath); err != nil {
+				return
+			}
+
+			fileInfo, err := os.OpenFile(
+				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey)),
+				os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
+			)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			logger := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
+			slog.SetDefault(logger)
+
+			slog.Info("start cli...")
+
+			db, err := connection.OpenDB(newConfigPath)
 			if err != nil {
 				return
 			}
@@ -99,29 +126,6 @@ func init() {
 	eventCmd.Flags().BoolVarP(&authorized, "authorized", "a", true, "Take info about authorization")
 
 	rootCmd.AddCommand(eventCmd, versionCmd)
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	if err := os.Mkdir(homeDir+string(os.PathSeparator)+"nau", os.ModePerm); err != nil && !errors.Is(err, os.ErrExist) {
-		log.Println(err)
-		return
-	}
-
-	fileInfo, err := os.OpenFile(
-		homeDir+string(os.PathSeparator)+"nau"+string(os.PathSeparator)+"cli-logger.txt",
-		os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
-	)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	logger := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
-	slog.SetDefault(logger)
 }
 
 func main() {

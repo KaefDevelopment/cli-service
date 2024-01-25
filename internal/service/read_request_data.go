@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
-	"github.com/jaroslav1991/cli-service/internal/utils"
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func (s *CLIService) ReadRequestData(request string) (model.Events, error) {

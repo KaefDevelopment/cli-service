@@ -1,4 +1,4 @@
-module github.com/jaroslav1991/cli-service
+module github.com/KaefDevelopment/cli-service
 
 go 1.21
 

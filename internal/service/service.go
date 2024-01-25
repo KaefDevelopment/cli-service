@@ -3,7 +3,7 @@
 package service
 
 import (
-	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/model"
 )
 
 type CLIService struct {

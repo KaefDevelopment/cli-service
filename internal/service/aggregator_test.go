@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jaroslav1991/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/model"
 )
 
 func TestCLIService_Aggregate_BranchNotFound(t *testing.T) {
