@@ -3,6 +3,7 @@ bundle_id = "com.kaef.cli"
 
 apple_id {
   username = "gooogenot@gmail.com"
+  password = "@env:AC_PASSWORD"
   provider = "PR6N2S8HV3"
 }
 
