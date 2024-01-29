@@ -61,7 +61,7 @@ jobs:
           go-version: 1.21
 
       - name: Set up gon
-        run: go install github.com/skeema/gon/cmd/gon@main
+        run: go install github.com/mitchellh/gon/cmd/gon@master
 
       - name: Set up gon
         run: gon --help
