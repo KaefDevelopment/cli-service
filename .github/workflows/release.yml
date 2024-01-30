@@ -62,9 +62,6 @@ jobs:
       - name: Set up gon
         run: go install github.com/skeema/gon/cmd/gon@20d3a17
 
-      - name: Set up gon
-        run: gon --help
-
       - name: Install the Apple certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERT }}
