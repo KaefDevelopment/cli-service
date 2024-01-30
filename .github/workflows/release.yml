@@ -61,7 +61,7 @@ jobs:
           go-version: 1.21
 
       - name: Set up gon
-        run: go install github.com/mitchellh/gon/cmd/gon@2d4f161
+        run: go install github.com/skeema/gon/cmd/gon@20d3a17
 
       - name: Set up gon
         run: gon --help
@@ -97,7 +97,7 @@ jobs:
 
       - name: Sign apple binaries
         env:
-          AC_PASS: ${{ secrets.AC_PASS }}
+          AC_PASSWORD: ${{ secrets.AC_PASS }}
         run: |
           gon -log-json -log-level debug gon_arm64.hcl
           gon -log-json -log-level debug gon_amd64.hcl
