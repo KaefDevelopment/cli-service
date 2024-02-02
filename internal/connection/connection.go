@@ -14,12 +14,14 @@ import (
 )
 
 func OpenDB(newConfigPath string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db"))
+	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db?journal_mode=WAL"))
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)
 		return nil, fmt.Errorf("%w: %v", utils.ErrConnectDB, err)
 	}
+
+	//_ = db.Exec("PRAGMA journal_mode = WAL") // set journal mode = WAL (Write Ahead Logging)
 
 	return db, nil
 }

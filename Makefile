@@ -58,3 +58,35 @@ test:
 .PHONY: generate
 generate:
 	go generate ./...
+
+.PHONY: send-several-instance
+send-several-instance:
+	$(MAKE) send-event1 &
+	$(MAKE) send-event2 &
+	$(MAKE) send-event3 &
+
+send-event1:
+	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+send-event2:
+	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec2","id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
+
+send-event3:
+	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec3","id":"","createdAt":"5","type":"5","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec3" -s "http://localhost:8181/events"
+
+
+.PHONY: send-event-win
+send-event-win:
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+
+.PHONY: send-wins
+send-wins:
+	$(MAKE) send-win1 &
+	$(MAKE) send0win2 &
+
+send-win1:
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+send-win2:
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec2","id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
