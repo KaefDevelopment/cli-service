@@ -14,7 +14,7 @@ import (
 )
 
 func OpenDB(newConfigPath string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db?journal_mode=WAL"))
+	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db"))
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)
