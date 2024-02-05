@@ -9,12 +9,15 @@ import (
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log/slog"
 	"os"
 )
 
-func OpenDB(newConfigPath string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(newConfigPath + string(os.PathSeparator) + "cli.db"))
+func OpenDB(logger logger.Interface, newConfigPath string) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(newConfigPath+string(os.PathSeparator)+"cli.db"), &gorm.Config{
+		Logger: logger,
+	})
 	if err != nil {
 		slog.Error("open db failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrConnectDB)

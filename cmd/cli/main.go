@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	customlogger "github.com/KaefDevelopment/cli-service/internal/service/custom-logger"
+	"gorm.io/gorm/logger"
 	"log"
 	"log/slog"
 	"os"
@@ -70,7 +72,7 @@ var (
 			}
 
 			fileInfo, err := os.OpenFile(
-				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey)),
+				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey[:8])),
 				os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
 			)
 			if err != nil {
@@ -78,12 +80,25 @@ var (
 				return
 			}
 
-			logger := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
-			slog.SetDefault(logger)
+			loggerSlog := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
+			slog.SetDefault(loggerSlog)
+
+			newLogger := customlogger.New(loggerSlog)
+
+			gormLogger := logger.New(
+				log.New(newLogger, "", log.LstdFlags),
+				logger.Config{
+					SlowThreshold:             0,
+					Colorful:                  false,
+					IgnoreRecordNotFoundError: false,
+					ParameterizedQueries:      false,
+					LogLevel:                  logger.Error,
+				},
+			)
 
 			slog.Info("start cli...")
 
-			db, err := connection.OpenDB(newConfigPath)
+			db, err := connection.OpenDB(gormLogger, newConfigPath)
 			if err != nil {
 				return
 			}

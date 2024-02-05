@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log/slog"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
@@ -19,7 +20,7 @@ func NewCLIRepository(db *gorm.DB) *CLIRepository {
 }
 
 func (repo *CLIRepository) Create(events model.Events) error {
-	err := repo.db.Create(&events.Events).Error
+	err := repo.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&events.Events).Error
 	if err != nil {
 		slog.Error("error with create gorm model:", slog.String("err", err.Error()))
 		return err
