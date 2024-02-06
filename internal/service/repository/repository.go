@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"log/slog"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"log/slog"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service"

@@ -61,7 +61,7 @@ start-mock:
 
 .PHONY: test
 test:
-	@go test ./... -race -v
+	@go test -race -v -count=1 ./internal/...
 
 .PHONY: generate
 generate:
@@ -108,3 +108,7 @@ send-event-new-3:
 .PHONY: send-event-new-4
 send-event-new-4:
 	go run ./cmd/cli/main.go event -d '{"events":[{"id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"234","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"345","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"456","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+.PHONY: integration-tests
+integration-tests:
+	@go test -race -v -count=1 ./test/...

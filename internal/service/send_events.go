@@ -28,6 +28,11 @@ func (s *CLIService) sendWithLock(r Repository, version string) error {
 		return fmt.Errorf("failed to lock events: %w", err)
 	}
 
+	if len(events.Events) == 0 {
+		slog.Warn("no events to send")
+		return nil
+	}
+
 	if err := s.sendEvents(events, version); err != nil {
 		return fmt.Errorf("failed to sendEvents events: %w", err)
 	}
@@ -52,11 +57,6 @@ func (s *CLIService) Send(version string) error {
 }
 
 func (s *CLIService) sendEvents(events model.Events, version string) error {
-	if len(events.Events) == 0 {
-		slog.Warn("empty events")
-		return nil
-	}
-
 	osName := runtime.GOOS
 
 	deviceName, _ := os.Hostname()
