@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -112,7 +113,12 @@ func (s *CLIService) sendEvents(events model.Events, version string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		slog.Error("fail status code", slog.String("status", resp.Status))
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		slog.Error("fail status code", slog.String("status", resp.Status), slog.String("request", string(bytesEventsSend)), slog.String("response", string(body)))
 		return fmt.Errorf("%w: %s", errBadStatusCode, resp.Status)
 	}
 

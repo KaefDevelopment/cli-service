@@ -29,7 +29,15 @@ $(BUILD_DIR)/%.zip:
 
 .PHONY: send-event
 send-event:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+.PHONY: send-type-empty
+send-type-empty:
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+
+.PHONY: send-create-empty
+send-create-empty:
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 .PHONY: send-empty
 send-empty:
@@ -41,7 +49,7 @@ send-bad-event:
 
 .PHONY: send-not-authorized
 send-not-authorized:
-	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events" -a=false
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "456d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events" -a=false
 
 .PHONY: version
 version:
@@ -66,18 +74,18 @@ send-several-instance:
 	$(MAKE) send-event3 &
 
 send-event1:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 send-event2:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec2","id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
 
 send-event3:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec3","id":"","createdAt":"5","type":"5","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec3" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"5","type":"5","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec3" -s "http://localhost:8181/events"
 
 
 .PHONY: send-event-win
 send-event-win:
-	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 
 .PHONY: send-wins
@@ -86,17 +94,17 @@ send-wins:
 	$(MAKE) send0win2 &
 
 send-win1:
-	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 send-win2:
-	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec2","id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"4","type":"4","project":"4","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"4","branch":"","timezone":"4","params":{"count":"15"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec2" -s "http://localhost:8181/events"
 
 
 .PHONY: send-event-new-3
 send-event-new-3:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"234","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"345","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"234","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"345","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 
 .PHONY: send-event-new-4
 send-event-new-4:
-	go run ./cmd/cli/main.go event -d '{"events":[{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"234","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"345","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"456","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	go run ./cmd/cli/main.go event -d '{"events":[{"id":"123","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"234","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"345","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}},{"pluginId":"346d7f75-4b20-4166-8577-e656cdf3caec","id":"456","createdAt":"3","type":"2","project":"2","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
