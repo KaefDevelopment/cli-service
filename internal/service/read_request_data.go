@@ -26,18 +26,6 @@ func (s *CLIService) ReadRequestData(request string) (model.Events, error) {
 
 	for i := range requestModel.Events {
 		requestModel.Events[i].AuthKey = s.authKey
-
-		if requestModel.Events[i].Type == "" {
-			slog.Error("fail with type field, couldn't be empty", slog.String("err", utils.ErrTypeField.Error()))
-			utils.WriteErrorResponse(utils.ErrTypeField)
-			return model.Events{}, fmt.Errorf("%v", utils.ErrTypeField)
-		}
-
-		if requestModel.Events[i].CreatedAt == "" {
-			slog.Error("fail with created at field, couldn't be empty", slog.String("err", utils.ErrCreatedAtField.Error()))
-			utils.WriteErrorResponse(utils.ErrCreatedAtField)
-			return model.Events{}, fmt.Errorf("%v", utils.ErrCreatedAtField)
-		}
 	}
 
 	return requestModel, nil

@@ -24,7 +24,7 @@ func TestInstances(t *testing.T) {
 	args := []string{
 		"event",
 		"-d",
-		"{\"events\":[{\"pluginId\":\"346d7f75-4b20-4166-8577-e656cdf3caec\",\"id\":\"\",\"createdAt\":\"3\",\"type\":\"2\",\"project\":\"2\",\"projectBaseDir\":\"/mnt/c/Users/jaros/GolandProjects/tts\",\"language\":\"golang\",\"target\":\"2\",\"branch\":\"\",\"timezone\":\"2\",\"params\":{\"count\":\"12\"}}]}",
+		"{\"events\":[{\"id\":\"\",\"createdAt\":\"3\",\"type\":\"2\",\"project\":\"2\",\"projectBaseDir\":\"/mnt/c/Users/jaros/GolandProjects/tts\",\"language\":\"golang\",\"target\":\"2\",\"branch\":\"\",\"timezone\":\"2\",\"params\":{\"count\":\"12\"}}]}",
 		"-k",
 		"346d7f75-4b20-4166-8577-e656cdf3caec",
 		"-s",
