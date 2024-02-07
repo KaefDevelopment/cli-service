@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -38,11 +39,11 @@ func TestCLIService_CreateEvents_Positive(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Create(events).Return(nil)
+	repo.EXPECT().Create(gomock.Any(), events).Return(nil)
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.CreateEvents(events)
+	err := service.CreateEvents(context.Background(), events)
 	assert.NoError(t, err)
 
 }
@@ -68,11 +69,11 @@ func TestCLIService_CreateEvents_Error(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Create(events).Return(utils.ErrReadRequestDataUnmarshal)
+	repo.EXPECT().Create(gomock.Any(), events).Return(utils.ErrReadRequestDataUnmarshal)
 
 	service := NewCLIService(repo, txp, "", "")
 
-	err := service.CreateEvents(events)
+	err := service.CreateEvents(context.Background(), events)
 	assert.Error(t, err)
 
 }
@@ -98,16 +99,16 @@ func TestCLIService_lockEvents(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Create(events).Return(nil)
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(events, nil)
+	repo.EXPECT().Create(gomock.Any(), events).Return(nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.CreateEvents(events)
+	err := service.CreateEvents(context.Background(), events)
 	assert.NoError(t, err)
 
-	resEvents, err := service.lockEvents(repo)
+	resEvents, err := service.lockEvents(context.Background(), repo)
 	assert.NoError(t, err)
 	assert.Equal(t, events, resEvents)
 
@@ -134,16 +135,16 @@ func TestCLIService_lockEvents_ErrorGetMarked(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Create(events).Return(nil)
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(events, errors.New("get marked error"))
+	repo.EXPECT().Create(gomock.Any(), events).Return(nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(events, errors.New("get marked error"))
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.CreateEvents(events)
+	err := service.CreateEvents(context.Background(), events)
 	assert.NoError(t, err)
 
-	_, err = service.lockEvents(repo)
+	_, err = service.lockEvents(context.Background(), repo)
 	assert.Error(t, err)
 }
 
@@ -168,15 +169,15 @@ func TestCLIService_lockEvents_ErrorMarkSent(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Create(events).Return(nil)
-	repo.EXPECT().MarkSent().Return(errors.New("mark sent error"))
+	repo.EXPECT().Create(gomock.Any(), events).Return(nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(errors.New("mark sent error"))
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.CreateEvents(events)
+	err := service.CreateEvents(context.Background(), events)
 	assert.NoError(t, err)
 
-	_, err = service.lockEvents(repo)
+	_, err = service.lockEvents(context.Background(), repo)
 	assert.Error(t, err)
 }
 
@@ -201,11 +202,11 @@ func TestCLIService_unlockEvents(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Delete(events).Return(nil)
+	repo.EXPECT().Delete(gomock.Any(), events).Return(nil)
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.unlockEvents(repo, events)
+	err := service.unlockEvents(context.Background(), repo, events)
 	assert.NoError(t, err)
 }
 
@@ -230,11 +231,11 @@ func TestCLIService_unlockEvents_Error(t *testing.T) {
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
-	repo.EXPECT().Delete(events).Return(errors.New("delete error"))
+	repo.EXPECT().Delete(gomock.Any(), events).Return(errors.New("delete error"))
 
 	service := NewCLIService(repo, txp, "", "12345")
 
-	err := service.unlockEvents(repo, events)
+	err := service.unlockEvents(context.Background(), repo, events)
 	assert.Error(t, err)
 }
 
@@ -249,7 +250,7 @@ func TestCLIService_Send(t *testing.T) {
 
 	txp.EXPECT().Transaction(gomock.Any()).Return(nil)
 
-	err := service.Send("")
+	err := service.Send(context.Background(), "")
 	assert.NoError(t, err)
 }
 
@@ -264,7 +265,7 @@ func TestCLIService_SendError(t *testing.T) {
 
 	txp.EXPECT().Transaction(gomock.Any()).Return(errors.New("error with transaction"))
 
-	err := service.Send("")
+	err := service.Send(context.Background(), "")
 	assert.Error(t, err)
 }
 
@@ -294,8 +295,8 @@ func TestCLIService_sendWithLock(t *testing.T) {
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(events, nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := io.ReadAll(request.Body)
@@ -307,12 +308,12 @@ func TestCLIService_sendWithLock(t *testing.T) {
 
 	service := NewCLIService(repo, txp, server.URL, "")
 
-	err = service.sendEvents(events, "1.0.1")
+	err = service.sendEvents(context.Background(), events, "1.0.1")
 	assert.NoError(t, err)
 
-	repo.EXPECT().Delete(events).Return(nil)
+	repo.EXPECT().Delete(gomock.Any(), events).Return(nil)
 
-	err = service.sendWithLock(repo, "1.0.1")
+	err = service.sendWithLock(context.Background(), repo, "1.0.1")
 	assert.NoError(t, err)
 }
 
@@ -342,8 +343,8 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(events, nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := io.ReadAll(request.Body)
@@ -355,12 +356,12 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 
 	service := NewCLIService(repo, txp, server.URL, "")
 
-	err = service.sendEvents(events, "1.0.1")
+	err = service.sendEvents(context.Background(), events, "1.0.1")
 	assert.NoError(t, err)
 
-	repo.EXPECT().Delete(events).Return(errors.New("error with unlock"))
+	repo.EXPECT().Delete(gomock.Any(), events).Return(errors.New("error with unlock"))
 
-	err = service.sendWithLock(repo, "1.0.1")
+	err = service.sendWithLock(context.Background(), repo, "1.0.1")
 	assert.Error(t, err)
 }
 
@@ -390,8 +391,8 @@ func TestCLIService_sendWithLock_ErrorSendEvents(t *testing.T) {
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(events, nil)
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := io.ReadAll(request.Body)
@@ -403,10 +404,10 @@ func TestCLIService_sendWithLock_ErrorSendEvents(t *testing.T) {
 
 	service := NewCLIService(repo, txp, "", "")
 
-	err = service.sendEvents(events, "1.0.1")
+	err = service.sendEvents(context.Background(), events, "1.0.1")
 	assert.Error(t, err)
 
-	err = service.sendWithLock(repo, "1.0.1")
+	err = service.sendWithLock(context.Background(), repo, "1.0.1")
 	assert.Error(t, err)
 }
 
@@ -417,11 +418,11 @@ func TestCLIService_sendWithLock_ErrorLockSent(t *testing.T) {
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
-	repo.EXPECT().MarkSent().Return(errors.New("error with mark sent"))
+	repo.EXPECT().MarkSent(gomock.Any()).Return(errors.New("error with mark sent"))
 
 	service := NewCLIService(repo, txp, "", "")
 
-	err := service.sendWithLock(repo, "1.0.1")
+	err := service.sendWithLock(context.Background(), repo, "1.0.1")
 	assert.Error(t, err)
 }
 
@@ -432,11 +433,11 @@ func TestCLIService_sendWithLock_ErrorLockGetMarked(t *testing.T) {
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
-	repo.EXPECT().MarkSent().Return(nil)
-	repo.EXPECT().GetMarked().Return(model.Events{}, errors.New("error with get marked"))
+	repo.EXPECT().MarkSent(gomock.Any()).Return(nil)
+	repo.EXPECT().GetMarked(gomock.Any()).Return(model.Events{}, errors.New("error with get marked"))
 
 	service := NewCLIService(repo, txp, "", "")
 
-	err := service.sendWithLock(repo, "1.0.1")
+	err := service.sendWithLock(context.Background(), repo, "1.0.1")
 	assert.Error(t, err)
 }

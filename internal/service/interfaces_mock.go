@@ -5,6 +5,7 @@
 package service
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/KaefDevelopment/cli-service/internal/model"
@@ -35,60 +36,60 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepository) Create(events model.Events) error {
+func (m *MockRepository) Create(ctx context.Context, events model.Events) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", events)
+	ret := m.ctrl.Call(m, "Create", ctx, events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockRepositoryMockRecorder) Create(events interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Create(ctx, events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), events)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), ctx, events)
 }
 
 // Delete mocks base method.
-func (m *MockRepository) Delete(events model.Events) error {
+func (m *MockRepository) Delete(ctx context.Context, events model.Events) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", events)
+	ret := m.ctrl.Call(m, "Delete", ctx, events)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockRepositoryMockRecorder) Delete(events interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Delete(ctx, events interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), events)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), ctx, events)
 }
 
 // GetMarked mocks base method.
-func (m *MockRepository) GetMarked() (model.Events, error) {
+func (m *MockRepository) GetMarked(ctx context.Context) (model.Events, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMarked")
+	ret := m.ctrl.Call(m, "GetMarked", ctx)
 	ret0, _ := ret[0].(model.Events)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMarked indicates an expected call of GetMarked.
-func (mr *MockRepositoryMockRecorder) GetMarked() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetMarked(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarked", reflect.TypeOf((*MockRepository)(nil).GetMarked))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarked", reflect.TypeOf((*MockRepository)(nil).GetMarked), ctx)
 }
 
 // MarkSent mocks base method.
-func (m *MockRepository) MarkSent() error {
+func (m *MockRepository) MarkSent(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MarkSent")
+	ret := m.ctrl.Call(m, "MarkSent", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MarkSent indicates an expected call of MarkSent.
-func (mr *MockRepositoryMockRecorder) MarkSent() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) MarkSent(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkSent", reflect.TypeOf((*MockRepository)(nil).MarkSent))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkSent", reflect.TypeOf((*MockRepository)(nil).MarkSent), ctx)
 }
 
 // WithTx mocks base method.

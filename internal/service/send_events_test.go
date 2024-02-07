@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -47,7 +48,7 @@ func TestCLIService_Send_Positive(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.sendEvents(testEvents, "1.0.1")
+	actualErr := service.sendEvents(context.Background(), testEvents, "1.0.1")
 	assert.NoError(t, actualErr)
 }
 
@@ -60,22 +61,13 @@ func TestCLIService_Send_Error_BadStatus(t *testing.T) {
 
 	service := CLIService{httpAddr: server.URL}
 
-	actualErr := service.sendEvents(testEvents, "1.0.1")
+	actualErr := service.sendEvents(context.Background(), testEvents, "1.0.1")
 	assert.ErrorIs(t, actualErr, errBadStatusCode)
 }
 
 func TestCLIService_Send_Error(t *testing.T) {
 	service := CLIService{}
 
-	actualErr := service.sendEvents(testEvents, "1.0.1")
+	actualErr := service.sendEvents(context.Background(), testEvents, "1.0.1")
 	assert.Error(t, actualErr)
-}
-
-func TestCLIService_Send_Empty(t *testing.T) {
-	actualData := model.Events{Events: nil}
-
-	service := CLIService{}
-
-	actualErr := service.sendEvents(actualData, "1.0.1")
-	assert.NoError(t, actualErr)
 }

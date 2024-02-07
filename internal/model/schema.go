@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -28,8 +29,8 @@ const (
 	create index if not exists send_created_at_idx on events (send, createdAt);`
 )
 
-func InitSchema(db *gorm.DB) error {
-	err := db.Exec(initSchema).Error
+func InitSchema(ctx context.Context, db *gorm.DB) error {
+	err := db.WithContext(ctx).Exec(initSchema).Error
 	if err != nil {
 		slog.Error("create table failed:", slog.String("err", err.Error()))
 		utils.WriteErrorResponse(utils.ErrCreateTable)
