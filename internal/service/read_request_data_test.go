@@ -82,5 +82,4 @@ func TestCLIService_ReadRequestData_AuthKeyError(t *testing.T) {
 
 	_, actualErr := service.ReadRequestData(requestData)
 	assert.Error(t, actualErr)
-
 }

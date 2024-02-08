@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -21,26 +22,31 @@ var (
 	errBadStatusCode = errors.New("bad status code")
 )
 
-func (s *CLIService) sendWithLock(r Repository, version string) error {
-	events, err := s.lockEvents(r)
+func (s *CLIService) sendWithLock(ctx context.Context, r Repository, version string) error {
+	events, err := s.lockEvents(ctx, r)
 	if err != nil {
 		return fmt.Errorf("failed to lock events: %w", err)
 	}
 
-	if err := s.sendEvents(events, version); err != nil {
+	if len(events.Events) == 0 {
+		slog.Warn("no events to send")
+		return nil
+	}
+
+	if err := s.sendEvents(ctx, events, version); err != nil {
 		return fmt.Errorf("failed to sendEvents events: %w", err)
 	}
 
-	if err := s.unlockEvents(r, events); err != nil {
+	if err := s.unlockEvents(ctx, r, events); err != nil {
 		return fmt.Errorf("failed to unlock events: %w", err)
 	}
 
 	return nil
 }
 
-func (s *CLIService) Send(version string) error {
+func (s *CLIService) Send(ctx context.Context, version string) error {
 	err := s.txp.Transaction(func(txp TxProvider) error {
-		return s.sendWithLock(s.repo.WithTx(txp), version)
+		return s.sendWithLock(ctx, s.repo.WithTx(txp), version)
 	})
 
 	if err != nil {
@@ -50,12 +56,7 @@ func (s *CLIService) Send(version string) error {
 	return nil
 }
 
-func (s *CLIService) sendEvents(events model.Events, version string) error {
-	if len(events.Events) == 0 {
-		slog.Warn("empty events")
-		return nil
-	}
-
+func (s *CLIService) sendEvents(ctx context.Context, events model.Events, version string) error {
 	osName := runtime.GOOS
 
 	deviceName, _ := os.Hostname()
@@ -91,7 +92,7 @@ func (s *CLIService) sendEvents(events model.Events, version string) error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.httpAddr, bytes.NewBuffer(bytesEventsSend))
@@ -112,7 +113,12 @@ func (s *CLIService) sendEvents(events model.Events, version string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		slog.Error("fail status code", slog.String("status", resp.Status))
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		slog.Error("fail status code", slog.String("status", resp.Status), slog.String("request", string(bytesEventsSend)), slog.String("response", string(body)))
 		return fmt.Errorf("%w: %s", errBadStatusCode, resp.Status)
 	}
 
@@ -121,20 +127,20 @@ func (s *CLIService) sendEvents(events model.Events, version string) error {
 	return nil
 }
 
-func (s *CLIService) lockEvents(repo Repository) (model.Events, error) {
-	if err := repo.MarkSent(); err != nil {
+func (s *CLIService) lockEvents(ctx context.Context, repo Repository) (model.Events, error) {
+	if err := repo.MarkSent(ctx); err != nil {
 		return model.Events{}, fmt.Errorf("failed to mark events: %w", err)
 	}
 
-	events, err := repo.GetMarked()
+	events, err := repo.GetMarked(ctx)
 	if err != nil {
 		return model.Events{}, fmt.Errorf("failed to get marked events: %w", err)
 	}
 	return events, nil
 }
 
-func (s *CLIService) unlockEvents(repo Repository, events model.Events) error {
-	if err := repo.Delete(events); err != nil {
+func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events model.Events) error {
+	if err := repo.Delete(ctx, events); err != nil {
 		return fmt.Errorf("failed to delete events: %w", err)
 	}
 	return nil

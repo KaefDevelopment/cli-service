@@ -1,8 +1,11 @@
 package repository
 
 import (
-	"gorm.io/gorm"
+	"context"
 	"log/slog"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service"
@@ -18,8 +21,8 @@ func NewCLIRepository(db *gorm.DB) *CLIRepository {
 	return &CLIRepository{db: db}
 }
 
-func (repo *CLIRepository) Create(events model.Events) error {
-	err := repo.db.Create(&events.Events).Error
+func (repo *CLIRepository) Create(ctx context.Context, events model.Events) error {
+	err := repo.db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&events.Events).Error
 	if err != nil {
 		slog.Error("error with create gorm model:", slog.String("err", err.Error()))
 		return err
@@ -28,8 +31,8 @@ func (repo *CLIRepository) Create(events model.Events) error {
 	return nil
 }
 
-func (repo *CLIRepository) MarkSent() error {
-	err := repo.db.Table("events").
+func (repo *CLIRepository) MarkSent(ctx context.Context) error {
+	err := repo.db.WithContext(ctx).Table("events").
 		Where("send = ?", 0).
 		Order("createdAt asc").
 		Limit(defaultLimit).
@@ -42,9 +45,9 @@ func (repo *CLIRepository) MarkSent() error {
 	return nil
 }
 
-func (repo *CLIRepository) GetMarked() (model.Events, error) {
+func (repo *CLIRepository) GetMarked(ctx context.Context) (model.Events, error) {
 	var events model.Events
-	err := repo.db.
+	err := repo.db.WithContext(ctx).
 		Where("send = 1").
 		Find(&events.Events).
 		Limit(defaultLimit).
@@ -57,8 +60,8 @@ func (repo *CLIRepository) GetMarked() (model.Events, error) {
 	return events, nil
 }
 
-func (repo *CLIRepository) Delete(events model.Events) error {
-	err := repo.db.Delete(events.Events).Error
+func (repo *CLIRepository) Delete(ctx context.Context, events model.Events) error {
+	err := repo.db.WithContext(ctx).Delete(events.Events).Error
 	if err != nil {
 		slog.Error("fail delete events gorm:", slog.String("err", err.Error()))
 		return err

@@ -1,0 +1,23 @@
+# This workflow will run unit and integration tests on PR events
+
+name: Test
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Unit
+        run: make test
+
+      - name: Integration
+        run: make integration-tests

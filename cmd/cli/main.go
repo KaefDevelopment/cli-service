@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -8,13 +9,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/spf13/cobra"
+	"gorm.io/gorm/logger"
+
 	"github.com/KaefDevelopment/cli-service/internal/connection"
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	cliservice "github.com/KaefDevelopment/cli-service/internal/service"
+	customlogger "github.com/KaefDevelopment/cli-service/internal/service/custom-logger"
 	"github.com/KaefDevelopment/cli-service/internal/service/repository"
 	"github.com/KaefDevelopment/cli-service/internal/utils"
-
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -43,11 +46,12 @@ var (
 		Short: "Event data in JSON format string",
 		Long:  "using with event flag",
 		Run: func(cmd *cobra.Command, args []string) {
-
 			now := time.Now()
+			ctx, cancel := context.WithTimeout(cmd.Context(), time.Minute)
 
 			var err error
 			defer func() {
+				cancel()
 				if err != nil {
 					slog.Error("error:", slog.String("err", err.Error()))
 				}
@@ -70,7 +74,7 @@ var (
 			}
 
 			fileInfo, err := os.OpenFile(
-				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey)),
+				filepath.Join(newConfigPath, fmt.Sprintf("cli-logger-%s.txt", authKey[:8])),
 				os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm,
 			)
 			if err != nil {
@@ -78,17 +82,30 @@ var (
 				return
 			}
 
-			logger := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
-			slog.SetDefault(logger)
+			loggerSlog := slog.New(slog.NewTextHandler(fileInfo, &slog.HandlerOptions{Level: slog.LevelInfo}))
+			slog.SetDefault(loggerSlog)
+
+			newLogger := customlogger.New(loggerSlog)
+
+			gormLogger := logger.New(
+				log.New(newLogger, "", log.LstdFlags),
+				logger.Config{
+					SlowThreshold:             0,
+					Colorful:                  false,
+					IgnoreRecordNotFoundError: false,
+					ParameterizedQueries:      false,
+					LogLevel:                  logger.Error,
+				},
+			)
 
 			slog.Info("start cli...")
 
-			db, err := connection.OpenDB(newConfigPath)
+			db, err := connection.OpenDB(gormLogger, newConfigPath)
 			if err != nil {
 				return
 			}
 
-			if err := model.InitSchema(db); err != nil {
+			if err := model.InitSchema(ctx, db); err != nil {
 				return
 			}
 
@@ -103,12 +120,12 @@ var (
 
 			service.Aggregate(requestData)
 
-			if err = service.CreateEvents(requestData); err != nil {
+			if err = service.CreateEvents(ctx, requestData); err != nil {
 				return
 			}
 
 			if authorized {
-				if err := service.Send(version); err != nil {
+				if err := service.Send(ctx, version); err != nil {
 					slog.Error("failed to send events", slog.String("err", err.Error()))
 				}
 			} else {

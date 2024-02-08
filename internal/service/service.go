@@ -3,6 +3,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/KaefDevelopment/cli-service/internal/model"
 )
 
@@ -18,10 +20,10 @@ func NewCLIService(repo Repository, txp TxProvider, httpAddr, authKey string) *C
 }
 
 type Repository interface {
-	Create(events model.Events) error
-	GetMarked() (model.Events, error)
-	MarkSent() error
-	Delete(events model.Events) error
+	Create(ctx context.Context, events model.Events) error
+	GetMarked(ctx context.Context) (model.Events, error)
+	MarkSent(ctx context.Context) error
+	Delete(ctx context.Context, events model.Events) error
 	WithTx(txProvider TxProvider) Repository
 }
 
