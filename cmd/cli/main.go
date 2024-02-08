@@ -88,7 +88,7 @@ var (
 			newLogger := customlogger.New(loggerSlog)
 
 			gormLogger := logger.New(
-				log.New(newLogger, "", log.LstdFlags),
+				newLogger,
 				logger.Config{
 					SlowThreshold:             0,
 					Colorful:                  false,
