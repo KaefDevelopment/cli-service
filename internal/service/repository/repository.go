@@ -2,16 +2,18 @@ package repository
 
 import (
 	"context"
-	"log/slog"
-
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"log/slog"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service"
+	"gorm.io/gorm"
 )
 
-const defaultLimit = 10000
+const (
+	defaultLimit = 10000
+	batchSize    = 900
+)
 
 type CLIRepository struct {
 	db *gorm.DB
@@ -22,7 +24,7 @@ func NewCLIRepository(db *gorm.DB) *CLIRepository {
 }
 
 func (repo *CLIRepository) Create(ctx context.Context, events model.Events) error {
-	err := repo.db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&events.Events).Error
+	err := repo.db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&events.Events, batchSize).Error
 	if err != nil {
 		slog.Error("error with create gorm model:", slog.String("err", err.Error()))
 		return err
