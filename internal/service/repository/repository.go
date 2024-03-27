@@ -34,14 +34,12 @@ func (repo *CLIRepository) Create(ctx context.Context, events model.Events) erro
 }
 
 func (repo *CLIRepository) MarkSent(ctx context.Context) error {
-	err := repo.db.WithContext(ctx).Table("events").
-		Where("send = ?", 0).
-		Order("createdAt asc").
-		Limit(defaultLimit).
-		Updates(map[string]interface{}{"send": 1}).
-		Error
-	if err != nil {
+	if err := repo.db.WithContext(ctx).Exec(
+		"UPDATE events SET send=1 WHERE id IN (SELECT id FROM events WHERE send=0 ORDER BY createdAt limit ?)",
+		defaultLimit).
+		Error; err != nil {
 		slog.Error("fail with update gorm column:", slog.String("err", err.Error()))
+		return err
 	}
 
 	return nil
