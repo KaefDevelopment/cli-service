@@ -277,8 +277,8 @@ func TestCLIService_sendWithLock(t *testing.T) {
 		Id:             "qwerty12345",
 		CreatedAt:      "1",
 		Type:           "1",
-		Project:        "cli-service",
-		ProjectBaseDir: "C:/Users/jaros/GolandProjects/cli-service",
+		Project:        "tts",
+		ProjectBaseDir: "/mnt/c/Users/jaros/GolandProjects/tts",
 		Language:       "golang",
 		Target:         "1",
 		Branch:         "master",
@@ -290,7 +290,7 @@ func TestCLIService_sendWithLock(t *testing.T) {
 
 	hn, err := os.Hostname()
 
-	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"cli-service","projectBaseDir":"C:/Users/jaros/GolandProjects/cli-service","language":"golang","target":"1","branch":"master","timezone":"MSK","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"MSK","params":{"reposInfo":[{"project":"cli-service","projectBaseDir":"C:/Users/jaros/GolandProjects/cli-service","repoUrl":"github.com:KaefDevelopment/cli-service"}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"tts","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"master","timezone":"MSK","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"MSK","params":{"reposInfo":[{"project":"tts","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","repoUrl":"https://github.com/jaroslav1991/tts"}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)

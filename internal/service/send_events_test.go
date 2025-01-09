@@ -38,7 +38,7 @@ func TestCLIService_Send_Positive(t *testing.T) {
 	hn, err := os.Hostname()
 	assert.NoError(t, err)
 
-	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"},"pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","repoUrl":""}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"},"pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","repoUrl":"https://github.com/jaroslav1991/tts"}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		actualData, err := io.ReadAll(request.Body)
