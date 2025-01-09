@@ -3,7 +3,7 @@ package dto
 import "github.com/KaefDevelopment/cli-service/internal/model"
 
 type Event struct {
-	Id             string       `json:"id" gorm:"column:id"`
+	Id             string       `json:"id,omitempty" gorm:"column:id"`
 	CreatedAt      string       `json:"createdAt" gorm:"column:createdAt"`
 	Type           string       `json:"type" gorm:"column:type"`
 	Project        string       `json:"project,omitempty" gorm:"column:project"`
@@ -11,7 +11,7 @@ type Event struct {
 	Language       string       `json:"language,omitempty" gorm:"column:language"`
 	Target         string       `json:"target,omitempty" gorm:"column:target"`
 	Branch         string       `json:"branch,omitempty" gorm:"column:branch"`
-	Timezone       string       `json:"timezone,omitempty" gorm:"column:timezone"`
+	Timezone       string       `json:"timezone,omitempty" gorm:"column:timeZone"`
 	Params         model.Params `json:"params,omitempty" gorm:"column:params"`
 	PluginId       string       `json:"pluginId" gorm:"column:pluginId"`
 }

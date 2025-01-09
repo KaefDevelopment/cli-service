@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 
@@ -36,12 +38,37 @@ func TestCLIService_Send_Positive(t *testing.T) {
 	hn, err := os.Hostname()
 	assert.NoError(t, err)
 
-	requestData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"},"pluginId":"12345"}]}`, runtime.GOOS, hn)
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"new_contract_v1","timezone":"1","params":{"count":"12"},"pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","repoUrl":""}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		body, err := io.ReadAll(request.Body)
+		actualData, err := io.ReadAll(request.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, requestData, string(body))
+		var expected, actual map[string]interface{}
+		err = json.Unmarshal([]byte(expectedData), &expected)
+		assert.NoError(t, err)
+		err = json.Unmarshal(actualData, &actual)
+		assert.NoError(t, err)
+		expectedEvents := expected["events"].([]interface{})
+		actualEvents := actual["events"].([]interface{})
+
+		for i := range expectedEvents {
+			expEvent := expectedEvents[i].(map[string]interface{})
+			actEvent := actualEvents[i].(map[string]interface{})
+
+			if expTime, ok := expEvent["createdAt"].(string); ok {
+				if actTime, ok := actEvent["createdAt"].(string); ok {
+					expParsed, _ := time.Parse(time.RFC3339, expTime)
+					actParsed, _ := time.Parse(time.RFC3339, actTime)
+
+					diff := expParsed.Sub(actParsed)
+					assert.LessOrEqual(t, diff.Abs(), 5*time.Millisecond)
+				}
+			}
+			delete(expEvent, "createdAt")
+			delete(actEvent, "createdAt")
+
+			assert.Equal(t, expEvent, actEvent)
+		}
 	}))
 
 	defer server.Close()

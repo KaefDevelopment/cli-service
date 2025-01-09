@@ -19,7 +19,7 @@ type Event struct {
 	Language       string `json:"language,omitempty" gorm:"column:language"`
 	Target         string `json:"target,omitempty" gorm:"column:target"`
 	Branch         string `json:"branch,omitempty" gorm:"column:branch"`
-	Timezone       string `json:"timezone,omitempty" gorm:"column:timezone"`
+	Timezone       string `json:"timezone,omitempty" gorm:"column:timeZone"`
 	Params         Params `json:"params,omitempty" gorm:"column:params"`
 	AuthKey        string `json:"authKey" gorm:"column:authKey"`
 	Send           bool   `json:"send" gorm:"column:send"`

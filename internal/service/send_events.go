@@ -12,15 +12,30 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service/dto"
 )
 
+const (
+	repoInfo = "REPO_INFO"
+)
+
 var (
 	errBadStatusCode = errors.New("bad status code")
 )
+
+type cache struct {
+	data map[string]interface{}
+	mu   sync.RWMutex
+}
+
+func newCache() *cache {
+	return &cache{data: make(map[string]interface{})}
+}
 
 func (s *CLIService) sendWithLock(ctx context.Context, r Repository, version string) error {
 	events, err := s.lockEvents(ctx, r)
@@ -65,8 +80,9 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		OsName:     osName,
 		DeviceName: deviceName,
 		CliVersion: version,
-		Events:     make([]dto.Event, 0, len(events.Events)),
+		Events:     make([]dto.Event, 0, len(events.Events)+1),
 	}
+	baseDirCache := newCache()
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -83,8 +99,42 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			PluginId:       events.Events[i].AuthKey,
 		}
 
+		getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir, baseDirCache)
+
 		resEvent.Events = append(resEvent.Events, dtoEvent)
 	}
+
+	info := model.Params{
+		"reposInfo": []map[string]interface{}{},
+	}
+
+	baseDirCache.mu.RLock()
+	for dir, url := range baseDirCache.data {
+		var project string
+		for _, event := range events.Events {
+			if event.ProjectBaseDir == dir {
+				project = event.Project
+				break
+			}
+		}
+		m := map[string]interface{}{
+			"repoUrl":        url,
+			"projectBaseDir": dir,
+			"project":        project,
+		}
+		info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
+	}
+	baseDirCache.mu.RUnlock()
+
+	repoUrl := dto.Event{
+		CreatedAt: time.Now().String(),
+		Type:      repoInfo,
+		Timezone:  events.Events[0].Timezone,
+		PluginId:  events.Events[0].AuthKey,
+		Params:    info,
+	}
+
+	resEvent.Events = append(resEvent.Events, repoUrl)
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {
@@ -144,4 +194,50 @@ func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events m
 		return fmt.Errorf("failed to delete events: %w", err)
 	}
 	return nil
+}
+
+func getRepoURLByProjectBaseDir(projectBaseDir string, baseDirCache *cache) {
+	if _, exist := baseDirCache.get(projectBaseDir); exist {
+		return
+	}
+
+	fileName := projectBaseDir + string(os.PathSeparator) + ".git" + string(os.PathSeparator) + "config"
+
+	config, err := os.ReadFile(fileName)
+	if err != nil {
+		slog.Warn("current url path not found:",
+			slog.String("err", err.Error()),
+			slog.String("projectBaseDir", projectBaseDir),
+			slog.String("filename", fileName))
+		baseDirCache.set(projectBaseDir, "")
+		return
+	}
+	lines := strings.Split(string(config), "\n")
+	for _, line := range lines {
+		l := strings.TrimSpace(line)
+		if strings.HasPrefix(l, "url = ") {
+			current := strings.ReplaceAll(l, "url = ", "")
+			pref := strings.TrimPrefix(current, "git@")
+			url := strings.TrimSuffix(pref, ".git")
+			baseDirCache.set(projectBaseDir, url)
+			break
+		}
+	}
+}
+
+func (c *cache) set(key string, value interface{}) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.data[key] = value
+}
+
+func (c *cache) get(key string) (interface{}, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	val, ok := c.data[key]
+	if !ok {
+		return nil, false
+	}
+
+	return val, true
 }
