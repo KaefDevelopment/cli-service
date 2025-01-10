@@ -85,7 +85,7 @@ send-event3:
 
 .PHONY: send-event-win
 send-event-win:
-	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"cli-service","projectBaseDir":"C:/Users/jaros/GolandProjects/cli-service","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
+	CGO_ENABLED=1 go run ./cmd/cli/main.go event -d '{"events":[{"id":"","createdAt":"3","type":"2","project":"home-command-cli","projectBaseDir":"C:/Users/jaros/GolandProjects/home-command-cli","language":"golang","target":"2","branch":"","timezone":"2","params":{"count":"12"}}]}' -k "346d7f75-4b20-4166-8577-e656cdf3caec" -s "http://localhost:8181/events"
 
 
 .PHONY: send-wins

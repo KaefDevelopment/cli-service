@@ -6,14 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-git/go-git/v5"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"runtime"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
@@ -26,16 +25,8 @@ const (
 
 var (
 	errBadStatusCode = errors.New("bad status code")
+	repoUrlCache     = make(map[string]interface{})
 )
-
-type cache struct {
-	data map[string]interface{}
-	mu   sync.RWMutex
-}
-
-func newCache() *cache {
-	return &cache{data: make(map[string]interface{})}
-}
 
 func (s *CLIService) sendWithLock(ctx context.Context, r Repository, version string) error {
 	events, err := s.lockEvents(ctx, r)
@@ -82,7 +73,6 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		CliVersion: version,
 		Events:     make([]dto.Event, 0, len(events.Events)+1),
 	}
-	baseDirCache := newCache()
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -99,7 +89,7 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			PluginId:       events.Events[i].AuthKey,
 		}
 
-		getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir, baseDirCache)
+		getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir, repoUrlCache)
 
 		resEvent.Events = append(resEvent.Events, dtoEvent)
 	}
@@ -108,8 +98,7 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		"reposInfo": []map[string]interface{}{},
 	}
 
-	baseDirCache.mu.RLock()
-	for dir, url := range baseDirCache.data {
+	for dir, urls := range repoUrlCache {
 		var project string
 		for _, event := range events.Events {
 			if event.ProjectBaseDir == dir {
@@ -118,13 +107,12 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			}
 		}
 		m := map[string]interface{}{
-			"repoUrl":        url,
+			"repoUrls":       urls,
 			"projectBaseDir": dir,
 			"project":        project,
 		}
 		info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
 	}
-	baseDirCache.mu.RUnlock()
 
 	repoUrl := dto.Event{
 		CreatedAt: time.Now().String(),
@@ -196,48 +184,30 @@ func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events m
 	return nil
 }
 
-func getRepoURLByProjectBaseDir(projectBaseDir string, baseDirCache *cache) {
-	if _, exist := baseDirCache.get(projectBaseDir); exist {
+func getRepoURLByProjectBaseDir(projectBaseDir string, repoUrlCache map[string]interface{}) {
+	if _, exist := repoUrlCache[projectBaseDir]; exist {
 		return
 	}
 
-	fileName := projectBaseDir + string(os.PathSeparator) + ".git" + string(os.PathSeparator) + "config"
-
-	config, err := os.ReadFile(fileName)
+	repo, err := git.PlainOpen(projectBaseDir)
 	if err != nil {
-		slog.Warn("current url path not found:",
+		slog.Warn("fail to open repository:",
 			slog.String("err", err.Error()),
-			slog.String("projectBaseDir", projectBaseDir),
-			slog.String("filename", fileName))
-		baseDirCache.set(projectBaseDir, "")
+			slog.String("projectBaseDir", projectBaseDir))
+		repoUrlCache[projectBaseDir] = nil
 		return
 	}
-	lines := strings.Split(string(config), "\n")
-	for _, line := range lines {
-		l := strings.TrimSpace(line)
-		if strings.HasPrefix(l, "url = ") {
-			current := strings.ReplaceAll(l, "url = ", "")
-			pref := strings.TrimPrefix(current, "git@")
-			url := strings.TrimSuffix(pref, ".git")
-			baseDirCache.set(projectBaseDir, url)
-			break
-		}
-	}
-}
 
-func (c *cache) set(key string, value interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.data[key] = value
-}
-
-func (c *cache) get(key string) (interface{}, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	val, ok := c.data[key]
-	if !ok {
-		return nil, false
+	remotes, err := repo.Remotes()
+	if err != nil {
+		slog.Warn("fail to get remotes:",
+			slog.String("err", err.Error()),
+			slog.String("projectBaseDir", projectBaseDir))
+		repoUrlCache[projectBaseDir] = nil
+		return
 	}
 
-	return val, true
+	for _, remote := range remotes {
+		repoUrlCache[projectBaseDir] = remote.Config().URLs
+	}
 }
