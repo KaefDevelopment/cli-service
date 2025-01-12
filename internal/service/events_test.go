@@ -277,8 +277,8 @@ func TestCLIService_sendWithLock(t *testing.T) {
 		Id:             "qwerty12345",
 		CreatedAt:      "1",
 		Type:           "1",
-		Project:        "tts",
-		ProjectBaseDir: "/mnt/c/Users/jaros/GolandProjects/tts",
+		Project:        "1",
+		ProjectBaseDir: "1",
 		Language:       "golang",
 		Target:         "1",
 		Branch:         "master",
@@ -290,8 +290,7 @@ func TestCLIService_sendWithLock(t *testing.T) {
 
 	hn, err := os.Hostname()
 
-	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"tts","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","language":"golang","target":"1","branch":"master","timezone":"MSK","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"MSK","params":{"reposInfo":[{"project":"tts","projectBaseDir":"/mnt/c/Users/jaros/GolandProjects/tts","repoUrl":""}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
-
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"MSK","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"MSK","params":{"reposInfo":[{"project":"1","projectBaseDir":"1","repoUrls":null}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
@@ -314,15 +313,6 @@ func TestCLIService_sendWithLock(t *testing.T) {
 			expEvent := expectedEvents[i].(map[string]interface{})
 			actEvent := actualEvents[i].(map[string]interface{})
 
-			if expTime, ok := expEvent["createdAt"].(string); ok {
-				if actTime, ok := actEvent["createdAt"].(string); ok {
-					expParsed, _ := time.Parse(time.RFC3339, expTime)
-					actParsed, _ := time.Parse(time.RFC3339, actTime)
-
-					diff := expParsed.Sub(actParsed)
-					assert.LessOrEqual(t, diff.Abs(), 5*time.Millisecond)
-				}
-			}
 			delete(expEvent, "createdAt")
 			delete(actEvent, "createdAt")
 
@@ -364,7 +354,7 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 
 	hn, err := os.Hostname()
 
-	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"1","pluginId":"12345"},{"createdAt":"2025-01-09 21:13:21.9628957 +0300 MSK m=+0.029228201","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"1","repoUrl":""}]},"pluginId":"12345"}]}`, runtime.GOOS, hn)
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"1","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"1","repoUrls":null}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
@@ -375,7 +365,6 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		actualData, err := io.ReadAll(request.Body)
 		assert.NoError(t, err)
-
 		var expected, actual map[string]interface{}
 		err = json.Unmarshal([]byte(expectedData), &expected)
 		assert.NoError(t, err)
@@ -388,15 +377,6 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 			expEvent := expectedEvents[i].(map[string]interface{})
 			actEvent := actualEvents[i].(map[string]interface{})
 
-			if expTime, ok := expEvent["createdAt"].(string); ok {
-				if actTime, ok := actEvent["createdAt"].(string); ok {
-					expParsed, _ := time.Parse(time.RFC3339, expTime)
-					actParsed, _ := time.Parse(time.RFC3339, actTime)
-
-					diff := expParsed.Sub(actParsed)
-					assert.LessOrEqual(t, diff.Abs(), 5*time.Millisecond)
-				}
-			}
 			delete(expEvent, "createdAt")
 			delete(actEvent, "createdAt")
 
