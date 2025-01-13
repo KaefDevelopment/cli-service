@@ -54,6 +54,8 @@ func TestCLIService_Send_Positive(t *testing.T) {
 
 			delete(expEvent, "createdAt")
 			delete(actEvent, "createdAt")
+			delete(expEvent, "id")
+			delete(actEvent, "id")
 
 			assert.Equal(t, expEvent, actEvent)
 		}

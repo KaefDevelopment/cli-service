@@ -3,7 +3,7 @@ package dto
 import "github.com/KaefDevelopment/cli-service/internal/model"
 
 type Event struct {
-	Id             string       `json:"id,omitempty" gorm:"column:id"`
+	Id             string       `json:"id" gorm:"column:id"`
 	CreatedAt      string       `json:"createdAt" gorm:"column:createdAt"`
 	Type           string       `json:"type" gorm:"column:type"`
 	Project        string       `json:"project,omitempty" gorm:"column:project"`

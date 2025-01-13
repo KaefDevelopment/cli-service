@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/KaefDevelopment/cli-service/internal/model"
-	"github.com/KaefDevelopment/cli-service/internal/utils"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +15,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func TestCLIService_CreateEvents_Positive(t *testing.T) {
@@ -315,6 +316,8 @@ func TestCLIService_sendWithLock(t *testing.T) {
 
 			delete(expEvent, "createdAt")
 			delete(actEvent, "createdAt")
+			delete(expEvent, "id")
+			delete(actEvent, "id")
 
 			assert.Equal(t, expEvent, actEvent)
 		}
@@ -379,6 +382,8 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 
 			delete(expEvent, "createdAt")
 			delete(actEvent, "createdAt")
+			delete(expEvent, "id")
+			delete(actEvent, "id")
 
 			assert.Equal(t, expEvent, actEvent)
 		}

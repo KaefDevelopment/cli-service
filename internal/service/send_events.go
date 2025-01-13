@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-git/go-git/v5"
 	"io"
 	"log"
 	"log/slog"
@@ -15,17 +14,17 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/google/uuid"
+
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service/dto"
 )
 
-const (
-	repoInfo = "REPO_INFO"
-)
+const repoInfo = "REPO_INFO"
 
 var (
 	errBadStatusCode = errors.New("bad status code")
-	repoUrlCache     = make(map[string]interface{})
 )
 
 func (s *CLIService) sendWithLock(ctx context.Context, r Repository, version string) error {
@@ -74,6 +73,8 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		Events:     make([]dto.Event, 0, len(events.Events)+1),
 	}
 
+	var repoUrlCache = make(map[string]interface{})
+
 	for i := range events.Events {
 		dtoEvent := dto.Event{
 			Id:             events.Events[i].Id,
@@ -89,40 +90,46 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			PluginId:       events.Events[i].AuthKey,
 		}
 
-		getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir, repoUrlCache)
+		if _, ok := repoUrlCache[events.Events[i].ProjectBaseDir]; !ok {
+			urls := getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir)
+			repoUrlCache[events.Events[i].ProjectBaseDir] = urls
+		}
 
 		resEvent.Events = append(resEvent.Events, dtoEvent)
-	}
 
-	info := model.Params{
-		"reposInfo": []map[string]interface{}{},
-	}
-
-	for dir, urls := range repoUrlCache {
-		var project string
-		for _, event := range events.Events {
-			if event.ProjectBaseDir == dir {
-				project = event.Project
-				break
+		if i == len(events.Events)-1 {
+			info := model.Params{
+				"reposInfo": []map[string]interface{}{},
 			}
-		}
-		m := map[string]interface{}{
-			"repoUrls":       urls,
-			"projectBaseDir": dir,
-			"project":        project,
-		}
-		info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
-	}
 
-	repoUrl := dto.Event{
-		CreatedAt: time.Now().String(),
-		Type:      repoInfo,
-		Timezone:  events.Events[0].Timezone,
-		PluginId:  events.Events[0].AuthKey,
-		Params:    info,
-	}
+			for dir, urls := range repoUrlCache {
+				var project string
+				for _, event := range events.Events {
+					if event.ProjectBaseDir == dir {
+						project = event.Project
+						break
+					}
+				}
+				m := map[string]interface{}{
+					"repoUrls":       urls,
+					"projectBaseDir": dir,
+					"project":        project,
+				}
+				info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
+			}
 
-	resEvent.Events = append(resEvent.Events, repoUrl)
+			repoUrl := dto.Event{
+				Id:        uuid.New().String(),
+				CreatedAt: time.Now().String(),
+				Type:      repoInfo,
+				Timezone:  events.Events[i].Timezone,
+				PluginId:  events.Events[i].AuthKey,
+				Params:    info,
+			}
+
+			resEvent.Events = append(resEvent.Events, repoUrl)
+		}
+	}
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {
@@ -184,18 +191,13 @@ func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events m
 	return nil
 }
 
-func getRepoURLByProjectBaseDir(projectBaseDir string, repoUrlCache map[string]interface{}) {
-	if _, exist := repoUrlCache[projectBaseDir]; exist {
-		return
-	}
-
+func getRepoURLByProjectBaseDir(projectBaseDir string) []string {
 	repo, err := git.PlainOpen(projectBaseDir)
 	if err != nil {
 		slog.Warn("fail to open repository:",
 			slog.String("err", err.Error()),
 			slog.String("projectBaseDir", projectBaseDir))
-		repoUrlCache[projectBaseDir] = nil
-		return
+		return nil
 	}
 
 	remotes, err := repo.Remotes()
@@ -203,11 +205,13 @@ func getRepoURLByProjectBaseDir(projectBaseDir string, repoUrlCache map[string]i
 		slog.Warn("fail to get remotes:",
 			slog.String("err", err.Error()),
 			slog.String("projectBaseDir", projectBaseDir))
-		repoUrlCache[projectBaseDir] = nil
-		return
+		return nil
 	}
 
+	var urls []string
 	for _, remote := range remotes {
-		repoUrlCache[projectBaseDir] = remote.Config().URLs
+		urls = append(urls, remote.Config().URLs...)
 	}
+
+	return urls
 }
