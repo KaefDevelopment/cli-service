@@ -91,7 +91,7 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		}
 
 		if _, ok := repoUrlCache[events.Events[i].ProjectBaseDir]; !ok {
-			urls := getRepoURLByProjectBaseDir(events.Events[i].ProjectBaseDir)
+			urls := getURLsByDir(events.Events[i].ProjectBaseDir)
 			repoUrlCache[events.Events[i].ProjectBaseDir] = urls
 		}
 
@@ -191,7 +191,7 @@ func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events m
 	return nil
 }
 
-func getRepoURLByProjectBaseDir(projectBaseDir string) []string {
+func getURLsByDir(projectBaseDir string) []string {
 	repo, err := git.PlainOpen(projectBaseDir)
 	if err != nil {
 		slog.Warn("fail to open repository:",
