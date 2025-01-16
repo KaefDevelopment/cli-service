@@ -73,7 +73,12 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		Events:     make([]dto.Event, 0, len(events.Events)+1),
 	}
 
-	var repoUrlCache = make(map[string]interface{})
+	var (
+		repoURLs = make(map[string]struct{})
+		info     = model.Params{
+			"reposInfo": []map[string]interface{}{},
+		}
+	)
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -90,46 +95,30 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			PluginId:       events.Events[i].AuthKey,
 		}
 
-		if _, ok := repoUrlCache[events.Events[i].ProjectBaseDir]; !ok {
-			urls := getURLsByDir(events.Events[i].ProjectBaseDir)
-			repoUrlCache[events.Events[i].ProjectBaseDir] = urls
+		if _, ok := repoURLs[events.Events[i].ProjectBaseDir]; !ok {
+			repoURLs[events.Events[i].ProjectBaseDir] = struct{}{}
+
+			m := map[string]interface{}{
+				"repoUrls":       getURLsByDir(events.Events[i].ProjectBaseDir),
+				"projectBaseDir": events.Events[i].ProjectBaseDir,
+				"project":        events.Events[i].Project,
+			}
+			info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
 		}
 
 		resEvent.Events = append(resEvent.Events, dtoEvent)
 
-		if i == len(events.Events)-1 {
-			info := model.Params{
-				"reposInfo": []map[string]interface{}{},
-			}
-
-			for dir, urls := range repoUrlCache {
-				var project string
-				for _, event := range events.Events {
-					if event.ProjectBaseDir == dir {
-						project = event.Project
-						break
-					}
-				}
-				m := map[string]interface{}{
-					"repoUrls":       urls,
-					"projectBaseDir": dir,
-					"project":        project,
-				}
-				info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
-			}
-
-			repoUrl := dto.Event{
-				Id:        uuid.New().String(),
-				CreatedAt: time.Now().String(),
-				Type:      repoInfo,
-				Timezone:  events.Events[i].Timezone,
-				PluginId:  events.Events[i].AuthKey,
-				Params:    info,
-			}
-
-			resEvent.Events = append(resEvent.Events, repoUrl)
-		}
 	}
+
+	repoUrl := dto.Event{
+		Id:        uuid.New().String(),
+		CreatedAt: time.Now().String(),
+		Type:      repoInfo,
+		Timezone:  events.Events[0].Timezone,
+		PluginId:  events.Events[0].AuthKey,
+		Params:    info,
+	}
+	resEvent.Events = append(resEvent.Events, repoUrl)
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {

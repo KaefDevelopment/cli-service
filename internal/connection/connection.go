@@ -2,7 +2,9 @@ package connection
 
 import (
 	"fmt"
-	"github.com/KaefDevelopment/cli-service/internal/utils"
+	"log/slog"
+	"os"
+
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
@@ -10,8 +12,8 @@ import (
 	"gorm.io/gorm"
 	_ "gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log/slog"
-	"os"
+
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func OpenDB(logger logger.Interface, newConfigPath string) (*gorm.DB, error) {

@@ -3,10 +3,9 @@ package service
 import (
 	"testing"
 
-	"github.com/KaefDevelopment/cli-service/internal/model"
-
 	"github.com/stretchr/testify/assert"
-	_ "github.com/stretchr/testify/assert"
+
+	"github.com/KaefDevelopment/cli-service/internal/model"
 )
 
 func TestCLIService_ReadRequestData_Positive(t *testing.T) {

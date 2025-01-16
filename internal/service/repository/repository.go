@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
-	"gorm.io/gorm/clause"
 	"log/slog"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service"
-	"gorm.io/gorm"
 )
 
 const (

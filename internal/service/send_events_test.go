@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/KaefDevelopment/cli-service/internal/model"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +13,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/KaefDevelopment/cli-service/internal/model"
 )
 
 func TestCLIService_Send_Positive(t *testing.T) {
