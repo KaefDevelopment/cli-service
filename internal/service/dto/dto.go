@@ -11,7 +11,7 @@ type Event struct {
 	Language       string       `json:"language,omitempty" gorm:"column:language"`
 	Target         string       `json:"target,omitempty" gorm:"column:target"`
 	Branch         string       `json:"branch,omitempty" gorm:"column:branch"`
-	Timezone       string       `json:"timezone,omitempty" gorm:"column:timezone"`
+	Timezone       string       `json:"timezone,omitempty" gorm:"column:timeZone"`
 	Params         model.Params `json:"params,omitempty" gorm:"column:params"`
 	PluginId       string       `json:"pluginId" gorm:"column:pluginId"`
 }

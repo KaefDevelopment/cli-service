@@ -2,16 +2,16 @@ package connection
 
 import (
 	"fmt"
-	"github.com/KaefDevelopment/cli-service/internal/utils"
+	"log/slog"
+	"os"
+
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
-	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log/slog"
-	"os"
+
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func OpenDB(logger logger.Interface, newConfigPath string) (*gorm.DB, error) {
@@ -23,8 +23,6 @@ func OpenDB(logger logger.Interface, newConfigPath string) (*gorm.DB, error) {
 		utils.WriteErrorResponse(utils.ErrConnectDB)
 		return nil, fmt.Errorf("%w: %v", utils.ErrConnectDB, err)
 	}
-
-	//_ = db.Exec("PRAGMA journal_mode = WAL") // set journal mode = WAL (Write Ahead Logging)
 
 	return db, nil
 }

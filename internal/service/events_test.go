@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,12 +11,13 @@ import (
 	"os"
 	"runtime"
 	"testing"
-
-	"github.com/KaefDevelopment/cli-service/internal/model"
-	"github.com/KaefDevelopment/cli-service/internal/utils"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/KaefDevelopment/cli-service/internal/model"
+	"github.com/KaefDevelopment/cli-service/internal/utils"
 )
 
 func TestCLIService_CreateEvents_Positive(t *testing.T) {
@@ -272,7 +274,6 @@ func TestCLIService_SendError(t *testing.T) {
 func TestCLIService_sendWithLock(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	events := model.Events{Events: []model.Event{{
 		Id:             "qwerty12345",
 		CreatedAt:      "1",
@@ -282,7 +283,7 @@ func TestCLIService_sendWithLock(t *testing.T) {
 		Language:       "golang",
 		Target:         "1",
 		Branch:         "master",
-		Timezone:       "1",
+		Timezone:       "MSK",
 		Params:         nil,
 		AuthKey:        "12345",
 		Send:           false,
@@ -290,8 +291,7 @@ func TestCLIService_sendWithLock(t *testing.T) {
 
 	hn, err := os.Hostname()
 
-	requestData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"1","pluginId":"12345"}]}`, runtime.GOOS, hn)
-
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"MSK","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"MSK","params":{"reposInfo":[{"project":"1","projectBaseDir":"1","repoUrls":null}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
 
@@ -299,9 +299,28 @@ func TestCLIService_sendWithLock(t *testing.T) {
 	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		body, err := io.ReadAll(request.Body)
+		actualData, err := io.ReadAll(request.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, requestData, string(body))
+
+		var expected, actual map[string]interface{}
+		err = json.Unmarshal([]byte(expectedData), &expected)
+		assert.NoError(t, err)
+		err = json.Unmarshal(actualData, &actual)
+		assert.NoError(t, err)
+		expectedEvents := expected["events"].([]interface{})
+		actualEvents := actual["events"].([]interface{})
+
+		for i := range expectedEvents {
+			expEvent := expectedEvents[i].(map[string]interface{})
+			actEvent := actualEvents[i].(map[string]interface{})
+
+			delete(expEvent, "createdAt")
+			delete(actEvent, "createdAt")
+			delete(expEvent, "id")
+			delete(actEvent, "id")
+
+			assert.Equal(t, expEvent, actEvent)
+		}
 	}))
 
 	defer server.Close()
@@ -338,7 +357,7 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 
 	hn, err := os.Hostname()
 
-	requestData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"1","pluginId":"12345"}]}`, runtime.GOOS, hn)
+	expectedData := fmt.Sprintf(`{"osName":"%s","deviceName":"%s","cliVersion":"1.0.1","events":[{"id":"qwerty12345","createdAt":"1","type":"1","project":"1","projectBaseDir":"1","language":"golang","target":"1","branch":"master","timezone":"1","pluginId":"12345"},{"createdAt":"%s","type":"REPO_INFO","timezone":"1","params":{"reposInfo":[{"project":"1","projectBaseDir":"1","repoUrls":null}]},"pluginId":"12345"}]}`, runtime.GOOS, hn, time.Now().String())
 
 	repo := NewMockRepository(ctrl)
 	txp := NewMockTxProvider(ctrl)
@@ -347,9 +366,27 @@ func TestCLIService_sendWithLock_ErrorUnlock(t *testing.T) {
 	repo.EXPECT().GetMarked(gomock.Any()).Return(events, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		body, err := io.ReadAll(request.Body)
+		actualData, err := io.ReadAll(request.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, requestData, string(body))
+		var expected, actual map[string]interface{}
+		err = json.Unmarshal([]byte(expectedData), &expected)
+		assert.NoError(t, err)
+		err = json.Unmarshal(actualData, &actual)
+		assert.NoError(t, err)
+		expectedEvents := expected["events"].([]interface{})
+		actualEvents := actual["events"].([]interface{})
+
+		for i := range expectedEvents {
+			expEvent := expectedEvents[i].(map[string]interface{})
+			actEvent := actualEvents[i].(map[string]interface{})
+
+			delete(expEvent, "createdAt")
+			delete(actEvent, "createdAt")
+			delete(expEvent, "id")
+			delete(actEvent, "id")
+
+			assert.Equal(t, expEvent, actEvent)
+		}
 	}))
 
 	defer server.Close()

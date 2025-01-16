@@ -14,9 +14,14 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/google/uuid"
+
 	"github.com/KaefDevelopment/cli-service/internal/model"
 	"github.com/KaefDevelopment/cli-service/internal/service/dto"
 )
+
+const repoInfo = "REPO_INFO"
 
 var (
 	errBadStatusCode = errors.New("bad status code")
@@ -65,8 +70,15 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		OsName:     osName,
 		DeviceName: deviceName,
 		CliVersion: version,
-		Events:     make([]dto.Event, 0, len(events.Events)),
+		Events:     make([]dto.Event, 0, len(events.Events)+1),
 	}
+
+	var (
+		repoURLs = make(map[string]struct{})
+		info     = model.Params{
+			"reposInfo": []map[string]interface{}{},
+		}
+	)
 
 	for i := range events.Events {
 		dtoEvent := dto.Event{
@@ -83,8 +95,30 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 			PluginId:       events.Events[i].AuthKey,
 		}
 
+		if _, ok := repoURLs[events.Events[i].ProjectBaseDir]; !ok {
+			repoURLs[events.Events[i].ProjectBaseDir] = struct{}{}
+
+			m := map[string]interface{}{
+				"repoUrls":       getURLsByDir(events.Events[i].ProjectBaseDir),
+				"projectBaseDir": events.Events[i].ProjectBaseDir,
+				"project":        events.Events[i].Project,
+			}
+			info["reposInfo"] = append(info["reposInfo"].([]map[string]interface{}), m)
+		}
+
 		resEvent.Events = append(resEvent.Events, dtoEvent)
+
 	}
+
+	repoUrl := dto.Event{
+		Id:        uuid.New().String(),
+		CreatedAt: time.Now().String(),
+		Type:      repoInfo,
+		Timezone:  events.Events[0].Timezone,
+		PluginId:  events.Events[0].AuthKey,
+		Params:    info,
+	}
+	resEvent.Events = append(resEvent.Events, repoUrl)
 
 	bytesEventsSend, err := json.Marshal(resEvent)
 	if err != nil {
@@ -144,4 +178,29 @@ func (s *CLIService) unlockEvents(ctx context.Context, repo Repository, events m
 		return fmt.Errorf("failed to delete events: %w", err)
 	}
 	return nil
+}
+
+func getURLsByDir(projectBaseDir string) []string {
+	repo, err := git.PlainOpen(projectBaseDir)
+	if err != nil {
+		slog.Warn("fail to open repository:",
+			slog.String("err", err.Error()),
+			slog.String("projectBaseDir", projectBaseDir))
+		return nil
+	}
+
+	remotes, err := repo.Remotes()
+	if err != nil {
+		slog.Warn("fail to get remotes:",
+			slog.String("err", err.Error()),
+			slog.String("projectBaseDir", projectBaseDir))
+		return nil
+	}
+
+	var urls []string
+	for _, remote := range remotes {
+		urls = append(urls, remote.Config().URLs...)
+	}
+
+	return urls
 }
