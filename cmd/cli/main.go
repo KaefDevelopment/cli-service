@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -38,6 +39,52 @@ var (
 		Short: "GetMarked cli version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(version)
+		},
+	}
+
+	// wipeCmd lets a plugin explicitly clear the local offline queue, e.g. when it
+	// learns about a REVOKED binding from its own status poll rather than from an
+	// ingestion 410. It is idempotent: wiping an already-empty (or absent) queue
+	// is harmless. Emits the same revoked marker on stdout on success.
+	wipeCmd = &cobra.Command{
+		Use:   "wipe",
+		Short: "Wipe local plugin data (offline event queue)",
+		Long:  "Drops all locally persisted events. Used by plugins to clear state on account deletion / unlink.",
+		Run: func(cmd *cobra.Command, args []string) {
+			ctx, cancel := context.WithTimeout(cmd.Context(), time.Minute)
+			defer cancel()
+
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				utils.WriteErrorResponse(err)
+				log.Println(err)
+				return
+			}
+
+			newConfigPath := homeDir + string(os.PathSeparator) + ".nau"
+			oldConfigPath := homeDir + string(os.PathSeparator) + "nau"
+
+			if err := utils.MigrateToNewConfigPath(newConfigPath, oldConfigPath); err != nil {
+				utils.WriteErrorResponse(err)
+				return
+			}
+
+			db, err := connection.OpenDB(logger.Default.LogMode(logger.Silent), newConfigPath)
+			if err != nil {
+				return
+			}
+
+			if err := model.InitSchema(ctx, db); err != nil {
+				return
+			}
+
+			repo := repository.NewCLIRepository(db)
+			if err := repo.WipeAll(ctx); err != nil {
+				utils.WriteErrorResponse(err)
+				return
+			}
+
+			utils.WriteRevokedResponse()
 		},
 	}
 
@@ -127,6 +174,16 @@ var (
 			if authorized {
 				if err := service.Send(ctx, version); err != nil {
 					slog.Error("failed to send events", slog.String("err", err.Error()))
+
+					// A REVOKED signal from the backend means this binding is gone.
+					// Send() has already wiped the local queue; here we emit an
+					// unambiguous machine-readable marker on stdout so the forking
+					// plugin logs out and regenerates its uid. Clear the error so
+					// deferred logging does not report it as a hard failure.
+					if errors.Is(err, cliservice.ErrRevoked) {
+						utils.WriteRevokedResponse()
+						err = nil
+					}
 				}
 			} else {
 				slog.Warn("plugin is not authorized", slog.String("pluginId", authKey))
@@ -142,7 +199,7 @@ func init() {
 	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
 	eventCmd.Flags().BoolVarP(&authorized, "authorized", "a", true, "Take info about authorization")
 
-	rootCmd.AddCommand(eventCmd, versionCmd)
+	rootCmd.AddCommand(eventCmd, versionCmd, wipeCmd)
 }
 
 func main() {

@@ -9,8 +9,14 @@ import (
 )
 
 type ResponseForPlugin struct {
-	Status bool   `json:"status"`
-	Error  string `json:"error"`
+	Status bool `json:"status"`
+	// Revoked is a positive, machine-readable marker telling the forking plugin
+	// that this plugin binding was destroyed on the backend (account deleted or
+	// plugin unlinked). On revoked:true the plugin MUST drop to a logged-out
+	// state and regenerate its uid. Emitted only on a clean REVOKED signal
+	// (HTTP 410 + body code PLUGIN_REVOKED); omitted otherwise for backward compat.
+	Revoked bool   `json:"revoked,omitempty"`
+	Error   string `json:"error"`
 }
 
 func WriteErrorResponse(err error) {
@@ -23,6 +29,17 @@ func WriteErrorResponse(err error) {
 func WriteSuccessResponse() {
 	WriteResponse(ResponseForPlugin{
 		Status: true,
+	})
+}
+
+// WriteRevokedResponse emits an unambiguous revoked marker on stdout so the
+// forking plugin logs out and regenerates its uid. Status stays true because
+// the cli itself did its job (events were persisted / wiped as required);
+// the actionable signal for the plugin is revoked:true.
+func WriteRevokedResponse() {
+	WriteResponse(ResponseForPlugin{
+		Status:  true,
+		Revoked: true,
 	})
 }
 
