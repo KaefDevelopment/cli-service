@@ -21,11 +21,28 @@ import (
 	"github.com/KaefDevelopment/cli-service/internal/service/dto"
 )
 
-const repoInfo = "REPO_INFO"
+const (
+	repoInfo = "REPO_INFO"
+	// revokedCode is the body marker the backend returns alongside HTTP 410 when
+	// this plugin binding has been destroyed (account deleted or plugin unlinked).
+	// See kaef-backend docs/plans/PLUGIN_DELETION_SIGNAL_PLAN.md §4.1.
+	revokedCode = "PLUGIN_REVOKED"
+)
 
 var (
 	errBadStatusCode = errors.New("bad status code")
+	// ErrRevoked is a distinct, non-retryable error meaning the backend positively
+	// declared this plugin binding gone (HTTP 410 + body code PLUGIN_REVOKED).
+	// It is deliberately NOT folded into errBadStatusCode so the caller can wipe
+	// local data instead of retrying the queue forever.
+	ErrRevoked = errors.New("plugin revoked")
 )
+
+// revokedBody is the minimal shape of the backend ErrorDto we need to confirm a
+// revoke; extra fields (e.g. description with the reason) are ignored on purpose.
+type revokedBody struct {
+	Code string `json:"code"`
+}
 
 func (s *CLIService) sendWithLock(ctx context.Context, r Repository, version string) error {
 	events, err := s.lockEvents(ctx, r)
@@ -55,6 +72,20 @@ func (s *CLIService) Send(ctx context.Context, version string) error {
 	})
 
 	if err != nil {
+		if errors.Is(err, ErrRevoked) {
+			// The send transaction above has already rolled back, so the events
+			// are still on disk. Wipe them via the base repo (s.repo, NOT the
+			// rolled-back tx repo) so the delete commits on its own connection
+			// and is not undone together with the failed send. We do NOT retry.
+			slog.Warn("plugin revoked, wiping local data", slog.String("pluginId", s.authKey))
+
+			if wipeErr := s.repo.WipeAll(ctx); wipeErr != nil {
+				slog.Error("failed to wipe local data after revoke", slog.String("err", wipeErr.Error()))
+			}
+
+			return err
+		}
+
 		slog.Error("transaction failed", slog.String("err", err.Error()))
 		return err
 	}
@@ -153,6 +184,17 @@ func (s *CLIService) sendEvents(ctx context.Context, events model.Events, versio
 		}
 
 		slog.Error("fail status code", slog.String("status", resp.Status), slog.String("request", string(bytesEventsSend)), slog.String("response", string(body)))
+
+		// Distinguish a positive REVOKED signal from every other >=400. Only a
+		// 410 whose body parses as {"code":"PLUGIN_REVOKED"} qualifies (both
+		// checks required); anything else stays a generic keep-and-retry error.
+		if resp.StatusCode == http.StatusGone {
+			var parsed revokedBody
+			if err := json.Unmarshal(body, &parsed); err == nil && parsed.Code == revokedCode {
+				return ErrRevoked
+			}
+		}
+
 		return fmt.Errorf("%w: %s", errBadStatusCode, resp.Status)
 	}
 
