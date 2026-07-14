@@ -24,10 +24,13 @@ type Repository interface {
 	GetMarked(ctx context.Context) (model.Events, error)
 	MarkSent(ctx context.Context) error
 	Delete(ctx context.Context, events model.Events) error
-	// WipeAll drops all locally persisted plugin data (the offline event queue).
-	// It is invoked on a REVOKED signal and MUST run outside any rolled-back
-	// send transaction so the wipe commits independently.
-	WipeAll(ctx context.Context) error
+	// WipeAll drops the locally persisted plugin data (the offline event queue)
+	// for the given authKey. Scoping by key matters because ~/.nau/cli.db is
+	// shared by every plugin on the machine: a single-plugin revoke (unlink)
+	// must not wipe another still-valid plugin's queue. It is invoked on a
+	// REVOKED signal and MUST run outside any rolled-back send transaction so
+	// the wipe commits independently.
+	WipeAll(ctx context.Context, authKey string) error
 	WithTx(txProvider TxProvider) Repository
 }
 

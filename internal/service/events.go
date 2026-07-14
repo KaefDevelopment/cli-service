@@ -15,7 +15,10 @@ func (s *CLIService) CreateEvents(ctx context.Context, events model.Events) erro
 	}
 
 	log.Printf("save %d events", len(events.Events))
-	utils.WriteSuccessResponse()
 
+	// The stdout success/revoked marker is emitted once by the caller after the
+	// whole event flow (persist + send) so plugins always receive a single JSON
+	// object on stdout. Emitting it here too would produce a second line and
+	// break the plugins that decode stdout as one value.
 	return nil
 }

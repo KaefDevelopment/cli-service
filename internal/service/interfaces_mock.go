@@ -93,17 +93,17 @@ func (mr *MockRepositoryMockRecorder) MarkSent(ctx interface{}) *gomock.Call {
 }
 
 // WipeAll mocks base method.
-func (m *MockRepository) WipeAll(ctx context.Context) error {
+func (m *MockRepository) WipeAll(ctx context.Context, authKey string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WipeAll", ctx)
+	ret := m.ctrl.Call(m, "WipeAll", ctx, authKey)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // WipeAll indicates an expected call of WipeAll.
-func (mr *MockRepositoryMockRecorder) WipeAll(ctx interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) WipeAll(ctx, authKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WipeAll", reflect.TypeOf((*MockRepository)(nil).WipeAll), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WipeAll", reflect.TypeOf((*MockRepository)(nil).WipeAll), ctx, authKey)
 }
 
 // WithTx mocks base method.

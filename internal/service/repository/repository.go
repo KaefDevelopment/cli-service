@@ -73,18 +73,20 @@ func (repo *CLIRepository) Delete(ctx context.Context, events model.Events) erro
 	return nil
 }
 
-// WipeAll removes all locally persisted plugin data. Today the queue lives in a
-// single table (events); when agent tables land (agent_cursors/agent_state) they
-// should be wiped here too. It runs on its own connection/transaction so a caller
-// can invoke it after a failed, rolled-back send without the delete being rolled
-// back along with the send.
-func (repo *CLIRepository) WipeAll(ctx context.Context) error {
-	if err := repo.db.WithContext(ctx).Exec("DELETE FROM events").Error; err != nil {
+// WipeAll removes the locally persisted plugin data for authKey. Today the queue
+// lives in a single table (events); when agent tables land (agent_cursors/
+// agent_state) they should be wiped here too, scoped by the same key. The delete
+// is scoped by authKey so a revoke of one plugin does not drop another plugin's
+// queued events from the shared ~/.nau/cli.db. It runs on its own connection/
+// transaction so a caller can invoke it after a failed, rolled-back send without
+// the delete being rolled back along with the send.
+func (repo *CLIRepository) WipeAll(ctx context.Context, authKey string) error {
+	if err := repo.db.WithContext(ctx).Exec("DELETE FROM events WHERE authKey = ?", authKey).Error; err != nil {
 		slog.Error("fail wipe events gorm:", slog.String("err", err.Error()))
 		return err
 	}
 
-	slog.Info("wiped all local events after revoke")
+	slog.Info("wiped local events after revoke")
 
 	return nil
 }

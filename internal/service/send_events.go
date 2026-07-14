@@ -79,7 +79,7 @@ func (s *CLIService) Send(ctx context.Context, version string) error {
 			// and is not undone together with the failed send. We do NOT retry.
 			slog.Warn("plugin revoked, wiping local data", slog.String("pluginId", s.authKey))
 
-			if wipeErr := s.repo.WipeAll(ctx); wipeErr != nil {
+			if wipeErr := s.repo.WipeAll(ctx, s.authKey); wipeErr != nil {
 				slog.Error("failed to wipe local data after revoke", slog.String("err", wipeErr.Error()))
 			}
 

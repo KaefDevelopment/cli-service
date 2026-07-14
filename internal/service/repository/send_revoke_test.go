@@ -32,12 +32,12 @@ func newTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func seedEvent(t *testing.T, db *gorm.DB, authKey string) {
+func seedEvent(t *testing.T, db *gorm.DB, id, authKey string) {
 	t.Helper()
 
 	repo := repository.NewCLIRepository(db)
 	err := repo.Create(context.Background(), model.Events{Events: []model.Event{{
-		Id:        "event-1",
+		Id:        id,
 		CreatedAt: "1",
 		Type:      "1",
 		Project:   "proj",
@@ -53,6 +53,14 @@ func countEvents(t *testing.T, db *gorm.DB) int64 {
 
 	var c int64
 	require.NoError(t, db.Table("events").Count(&c).Error)
+	return c
+}
+
+func countEventsForKey(t *testing.T, db *gorm.DB, authKey string) int64 {
+	t.Helper()
+
+	var c int64
+	require.NoError(t, db.Table("events").Where("authKey = ?", authKey).Count(&c).Error)
 	return c
 }
 
@@ -74,7 +82,7 @@ func newService(db *gorm.DB, addr string) *service.CLIService {
 // and the wipe survives even though the send transaction rolled back.
 func TestSend_Revoked_WipesQueueOutsideRolledBackTx(t *testing.T) {
 	db := newTestDB(t)
-	seedEvent(t, db, "test-auth-key")
+	seedEvent(t, db, "event-1", "test-auth-key")
 	require.Equal(t, int64(1), countEvents(t, db))
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +104,31 @@ func TestSend_Revoked_WipesQueueOutsideRolledBackTx(t *testing.T) {
 	assert.Equal(t, int64(0), countEvents(t, db))
 }
 
+// A revoke of one key must not wipe another still-valid plugin's queued events
+// from the shared cli.db (plan case F3).
+func TestSend_Revoked_WipesOnlyRevokedKey(t *testing.T) {
+	db := newTestDB(t)
+	seedEvent(t, db, "event-revoked", "test-auth-key")
+	seedEvent(t, db, "event-other", "other-key")
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusGone)
+		_, _ = w.Write([]byte(`{"code":"PLUGIN_REVOKED","description":"PLUGIN_UNLINKED"}`))
+	}))
+	defer srv.Close()
+
+	err := newService(db, srv.URL).Send(context.Background(), "1.0.0")
+
+	require.ErrorIs(t, err, service.ErrRevoked)
+	assert.Equal(t, int64(0), countEventsForKey(t, db, "test-auth-key"))
+	assert.Equal(t, int64(1), countEventsForKey(t, db, "other-key"))
+}
+
 // HTTP 500 -> generic error, queue kept intact and the mark is rolled back
 // (send reset to 0) so it retries; NOT treated as revoked.
 func TestSend_ServerError_KeepsQueue(t *testing.T) {
 	db := newTestDB(t)
-	seedEvent(t, db, "test-auth-key")
+	seedEvent(t, db, "event-1", "test-auth-key")
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -121,7 +149,7 @@ func TestSend_ServerError_KeepsQueue(t *testing.T) {
 // 410+PLUGIN_REVOKED signal, never a bare 401.
 func TestSend_Unauthorized_KeepsQueue(t *testing.T) {
 	db := newTestDB(t)
-	seedEvent(t, db, "test-auth-key")
+	seedEvent(t, db, "event-1", "test-auth-key")
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -140,7 +168,7 @@ func TestSend_Unauthorized_KeepsQueue(t *testing.T) {
 // checks required): a spurious 410 from a proxy stays a keep-and-retry error.
 func TestSend_GoneWithoutMarker_KeepsQueue(t *testing.T) {
 	db := newTestDB(t)
-	seedEvent(t, db, "test-auth-key")
+	seedEvent(t, db, "event-1", "test-auth-key")
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusGone)

@@ -42,17 +42,24 @@ var (
 		},
 	}
 
-	// wipeCmd lets a plugin explicitly clear the local offline queue, e.g. when it
+	// wipeCmd lets a plugin explicitly clear its local offline queue, e.g. when it
 	// learns about a REVOKED binding from its own status poll rather than from an
-	// ingestion 410. It is idempotent: wiping an already-empty (or absent) queue
-	// is harmless. Emits the same revoked marker on stdout on success.
+	// ingestion 410. It wipes only the events of the key passed via -k so a
+	// co-installed, still-valid plugin is untouched. It is idempotent: wiping an
+	// already-empty (or absent) queue is harmless. Emits the revoked marker on
+	// stdout on success.
 	wipeCmd = &cobra.Command{
 		Use:   "wipe",
-		Short: "Wipe local plugin data (offline event queue)",
-		Long:  "Drops all locally persisted events. Used by plugins to clear state on account deletion / unlink.",
+		Short: "Wipe local plugin data (offline event queue) for a key",
+		Long:  "Drops the locally persisted events for the given -k key. Used by plugins to clear state on account deletion / unlink.",
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithTimeout(cmd.Context(), time.Minute)
 			defer cancel()
+
+			if authKey == "" {
+				utils.WriteErrorResponse(utils.ErrAuthKey)
+				return
+			}
 
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
@@ -79,7 +86,7 @@ var (
 			}
 
 			repo := repository.NewCLIRepository(db)
-			if err := repo.WipeAll(ctx); err != nil {
+			if err := repo.WipeAll(ctx, authKey); err != nil {
 				utils.WriteErrorResponse(err)
 				return
 			}
@@ -172,23 +179,29 @@ var (
 			}
 
 			if authorized {
-				if err := service.Send(ctx, version); err != nil {
-					slog.Error("failed to send events", slog.String("err", err.Error()))
+				if sendErr := service.Send(ctx, version); sendErr != nil {
+					slog.Error("failed to send events", slog.String("err", sendErr.Error()))
 
-					// A REVOKED signal from the backend means this binding is gone.
-					// Send() has already wiped the local queue; here we emit an
-					// unambiguous machine-readable marker on stdout so the forking
-					// plugin logs out and regenerates its uid. Clear the error so
-					// deferred logging does not report it as a hard failure.
-					if errors.Is(err, cliservice.ErrRevoked) {
+					// A REVOKED signal means this binding is gone. Send() has
+					// already wiped the local queue; emit a single, unambiguous
+					// machine-readable marker on stdout so the forking plugin logs
+					// out and regenerates its uid, then stop (no success line).
+					if errors.Is(sendErr, cliservice.ErrRevoked) {
 						utils.WriteRevokedResponse()
-						err = nil
+						return
 					}
+
+					// Transient send failure (5xx/network): events stay queued
+					// locally for retry, which is a success from the plugin's
+					// point of view — fall through to the success marker.
 				}
 			} else {
 				slog.Warn("plugin is not authorized", slog.String("pluginId", authKey))
-				return
 			}
+
+			// Exactly one stdout marker for the whole event flow: the events were
+			// persisted locally (and sent, or queued for retry).
+			utils.WriteSuccessResponse()
 		},
 	}
 )
@@ -198,6 +211,8 @@ func init() {
 	eventCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key")
 	eventCmd.Flags().StringVarP(&httpAddr, "server-host", "s", "https://nautime.io/api/plugin/v1/events?source=cli&version=$version", "Http address for sending events")
 	eventCmd.Flags().BoolVarP(&authorized, "authorized", "a", true, "Take info about authorization")
+
+	wipeCmd.Flags().StringVarP(&authKey, "auth-key", "k", "", "Authorization key whose local queue to wipe")
 
 	rootCmd.AddCommand(eventCmd, versionCmd, wipeCmd)
 }
